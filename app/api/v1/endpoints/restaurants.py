@@ -11,7 +11,6 @@ from app.schemas.restaurant import (
     RestaurantUpdate,
     RestaurantWithVotes,
 )
-from app.schemas.vote import VoteCreate
 
 router = APIRouter()
 
@@ -99,51 +98,3 @@ def delete_restaurant(
         raise HTTPException(status_code=404, detail="Restaurant not found")
     restaurant = crud.restaurant.remove(db, id=id)
     return restaurant
-
-
-@router.post("/{id}/vote", response_model=RestaurantWithVotes)
-def vote_for_restaurant(
-    *,
-    db: Session = Depends(deps.get_db),
-    id: int,
-    current_user: models.User = Depends(deps.get_current_active_user),
-) -> Any:
-    """
-    Vote for a restaurant.
-    """
-    # Get restaurant and ensure it exists
-    restaurant_obj = (
-        db.query(models.Restaurant).filter(models.Restaurant.id == id).first()
-    )
-    if not restaurant_obj:
-        raise HTTPException(status_code=404, detail="Restaurant not found")
-
-        # Create vote
-    vote_in = VoteCreate(restaurant_id=id)
-    try:
-        crud.vote.create_vote(db, obj_in=vote_in, user_id=int(current_user.id))
-        db.commit()
-    except ValueError as e:
-        db.rollback()
-        raise HTTPException(status_code=400, detail=str(e))
-
-    # Get updated restaurant with votes
-    updated_restaurants = crud.restaurant.get_with_votes(db, restaurant_id=id)
-    if not updated_restaurants:
-        raise HTTPException(status_code=404, detail="Restaurant not found")
-
-    return updated_restaurants[0]
-
-
-@router.get("/winner/today", response_model=RestaurantWithVotes)
-def get_winner(
-    db: Session = Depends(deps.get_db),
-    current_user: models.User = Depends(deps.get_current_active_user),
-) -> Any:
-    """
-    Get today's winning restaurant.
-    """
-    winner = crud.restaurant.get_winner(db)
-    if not winner:
-        raise HTTPException(status_code=404, detail="No votes have been cast today")
-    return winner

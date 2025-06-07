@@ -114,8 +114,8 @@ All code must pass these checks before being committed!
 | Category | Description | Key Endpoints |
 |----------|-------------|---------------|
 | **Authentication** | User registration and JWT login | `/auth/register`, `/auth/login` |
-| **Restaurants** | CRUD operations and voting | `/restaurants/`, `/restaurants/{id}/vote` |
-| **Voting** | Daily weighted voting system | `/restaurants/winner/today` |
+| **Restaurants** | CRUD operations for restaurants | `/restaurants/`, `/restaurants/{id}` |
+| **Vote Sessions** | User-managed voting sessions | `/vote-sessions/`, `/vote-sessions/{id}/vote` |
 | **Health** | System monitoring | `/health`, `/metrics` |
 
 > 💡 **Tip**: Visit the [Swagger UI](https://conviustask-production.up.railway.app/docs) for complete API documentation with interactive testing!
