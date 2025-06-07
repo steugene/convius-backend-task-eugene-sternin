@@ -63,7 +63,7 @@ jobs:
     - name: 🚀 Deploy to Railway
       run: |
         echo "Deploying to Railway..."
-        railway up --service convius-task --detach
+        railway up --service convius_task --detach
       env:
         RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
 
