@@ -68,6 +68,17 @@ async def root():
         "environment": settings.ENVIRONMENT
     }
 
+# Health check endpoint for Railway
+@app.get("/health")
+async def health():
+    """Simple health check endpoint for Railway."""
+    return {
+        "status": "healthy",
+        "service": settings.PROJECT_NAME,
+        "version": settings.VERSION,
+        "environment": settings.ENVIRONMENT
+    }
+
 @app.on_event("startup")
 async def startup_event():
     """Application startup event."""

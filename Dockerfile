@@ -21,17 +21,17 @@ RUN groupadd -r appuser && useradd -r -g appuser appuser
 # Set work directory
 WORKDIR /app
 
-# Copy dependency files
-COPY pyproject.toml ./
+# Copy dependency files (both pyproject.toml and README.md needed for package metadata)
+COPY pyproject.toml README.md ./
 
-# Install Python dependencies
-RUN pip install --no-cache-dir -e .
+# Install the package in production mode
+RUN pip install --no-cache-dir .
 
 # Development stage
 FROM base as development
 
 # Install development dependencies
-RUN pip install --no-cache-dir -e ".[dev]"
+RUN pip install --no-cache-dir ".[dev]"
 
 # Copy application code
 COPY . .
@@ -51,11 +51,14 @@ CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload
 # Production stage
 FROM base as production
 
-# Install production dependencies only
-RUN pip install --no-cache-dir -e ".[production]"
+# Install production dependencies
+RUN pip install --no-cache-dir ".[production]"
 
 # Copy application code
 COPY . .
+
+# Make startup script executable
+RUN chmod +x start.sh
 
 # Create logs directory
 RUN mkdir -p /app/logs
@@ -66,12 +69,10 @@ RUN chown -R appuser:appuser /app
 # Switch to app user
 USER appuser
 
-# Expose port (Railway will set PORT env var)
-EXPOSE ${PORT:-8000}
+# Expose port 8000 (Railway will map to dynamic PORT)
+EXPOSE 8000
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
-    CMD curl -f http://localhost:${PORT:-8000}/health || exit 1
+# Health check handled by Railway via railway.toml
 
-# Command for production (Railway will override this)
-CMD gunicorn app.main:app --workers 4 --worker-class uvicorn.workers.UvicornWorker --bind 0.0.0.0:${PORT:-8000} --access-logfile - --error-logfile - 
+# Default command (Railway will override this with startCommand)
+CMD ["bash", "start.sh"] 

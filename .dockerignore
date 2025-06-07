@@ -41,9 +41,8 @@ ehthumbs.db
 Thumbs.db
 
 # Documentation
-README.md
 docs/
-*.md
+# Note: Keep README.md for package metadata
 
 # Logs
 logs/
