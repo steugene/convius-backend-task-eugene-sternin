@@ -67,13 +67,14 @@ jobs:
     - name: 🚀 Deploy to Railway
       env:
         RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+        RAILWAY_PROJECT_ID: ${{ vars.RAILWAY_PROJECT_ID }}
       run: |
         railway up --detach
 
     - name: 🏥 Health Check
       run: |
         sleep 30
-        curl -f ${{ secrets.RAILWAY_URL }}/health || exit 1
+        curl -f ${{ vars.RAILWAY_URL }}/health || exit 1
 
   notify:
     needs: [test, deploy]
