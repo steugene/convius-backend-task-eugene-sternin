@@ -1,11 +1,10 @@
 import time
 import uuid
-from typing import Any, Callable
+from typing import Callable
 
 from fastapi import HTTPException, Request, Response
 from fastapi.responses import JSONResponse
 from starlette.middleware.base import BaseHTTPMiddleware
-from starlette.types import ASGIApp
 
 from app.core.config import settings
 from app.core.logging import get_logger

@@ -1,19 +1,16 @@
 import asyncio
 from datetime import date, timedelta
-from typing import AsyncGenerator, Generator
+from typing import Generator
 
 import pytest
 from fastapi.testclient import TestClient
-from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from sqlalchemy.pool import NullPool
 
 from alembic import command
 from alembic.config import Config
 from app.core.config import settings
-from app.core.security import get_password_hash
 from app.crud.crud_user import user
-from app.db.session import Base, get_db, get_engine
+from app.db.session import get_db, get_engine
 from app.main import app
 from app.models.models import Restaurant, User
 from app.schemas.user import UserCreate

@@ -1,10 +1,9 @@
-from datetime import date, timedelta
+from datetime import date
 
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 
 from app.core.config import settings
-from app.crud.crud_vote import vote
 from app.models.models import Restaurant, User
 
 

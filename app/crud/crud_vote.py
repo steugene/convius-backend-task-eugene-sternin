@@ -46,7 +46,7 @@ class CRUDVote(CRUDBase[Vote, VoteCreate, VoteUpdate]):
         # Check if user has reached the daily vote limit
         if len(today_votes) >= settings.VOTES_PER_DAY:
             raise ValueError(
-                f"User has already used all {settings.VOTES_PER_DAY} votes for today"
+                f"User has already used all {settings.VOTES_PER_DAY} " "votes for today"
             )
 
         # Get votes for this specific restaurant today by this user
@@ -54,7 +54,8 @@ class CRUDVote(CRUDBase[Vote, VoteCreate, VoteUpdate]):
             v for v in today_votes if v.restaurant_id == obj_in.restaurant_id
         ]
 
-        # Determine weight based on how many times user has voted for this restaurant today
+        # Determine weight based on how many times user has voted
+        # for this restaurant today
         weights = settings.VOTE_WEIGHTS
         vote_count = len(restaurant_votes)
         weight_index = min(vote_count, len(weights) - 1)
