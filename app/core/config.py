@@ -130,8 +130,8 @@ class Settings(BaseSettings):
     REQUESTS_PER_MINUTE: int = 60
 
     # Voting Configuration
-    VOTES_PER_DAY: int = 3
-    VOTE_WEIGHTS: List[float] = [1.0, 0.5, 0.25]
+    VOTING_DEADLINE_HOUR: int = 14  # Voting closes at 14:00 (2 PM)
+    VOTING_DEADLINE_MINUTE: int = 0
 
     # Logging Configuration
     LOG_LEVEL: str = "INFO"

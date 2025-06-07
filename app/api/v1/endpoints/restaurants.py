@@ -118,10 +118,10 @@ def vote_for_restaurant(
     if not restaurant_obj:
         raise HTTPException(status_code=404, detail="Restaurant not found")
 
-    # Create vote with weight calculation
+        # Create vote
     vote_in = VoteCreate(restaurant_id=id)
     try:
-        crud.vote.create_with_weight(db, obj_in=vote_in, user_id=int(current_user.id))
+        crud.vote.create_vote(db, obj_in=vote_in, user_id=int(current_user.id))
         db.commit()
     except ValueError as e:
         db.rollback()

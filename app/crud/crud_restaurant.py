@@ -35,24 +35,19 @@ class CRUDRestaurant(CRUDBase[Restaurant, RestaurantCreate, RestaurantUpdate]):
 
         # Calculate vote statistics for each restaurant
         for restaurant in restaurants:
-            # Calculate total votes
+            # Calculate total votes (simple count)
             total_votes = (
-                db.query(func.sum(Vote.weight))
-                .filter(Vote.restaurant_id == restaurant.id, Vote.vote_date == today)
-                .scalar()
-                or 0.0
-            )
-
-            # Calculate distinct voters
-            distinct_voters = (
-                db.query(func.count(func.distinct(Vote.user_id)))
+                db.query(func.count(Vote.id))
                 .filter(Vote.restaurant_id == restaurant.id, Vote.vote_date == today)
                 .scalar()
                 or 0
             )
 
+            # Calculate distinct voters (same as total votes in standard voting)
+            distinct_voters = total_votes
+
             # Set the computed properties
-            restaurant.total_votes = float(total_votes)
+            restaurant.total_votes = int(total_votes)
             restaurant.distinct_voters = int(distinct_voters)
 
             # Ensure the restaurant is attached to the session
@@ -64,36 +59,28 @@ class CRUDRestaurant(CRUDBase[Restaurant, RestaurantCreate, RestaurantUpdate]):
     def get_winner(self, db: Session) -> Optional[Restaurant]:
         today = date.today()
 
-        # Get the restaurant with the highest total votes
+        # Get the restaurant with the most votes (simple counting)
         winner = (
             db.query(Restaurant)
             .join(Vote, Restaurant.id == Vote.restaurant_id)
             .filter(Vote.vote_date == today)
             .group_by(Restaurant.id)
-            .order_by(func.sum(Vote.weight).desc())
+            .order_by(func.count(Vote.id).desc())
             .first()
         )
 
         if winner:
-            # Calculate total votes
+            # Calculate total votes (simple count)
             total_votes = (
-                db.query(func.sum(Vote.weight))
-                .filter(Vote.restaurant_id == winner.id, Vote.vote_date == today)
-                .scalar()
-                or 0.0
-            )
-
-            # Calculate distinct voters
-            distinct_voters = (
-                db.query(func.count(func.distinct(Vote.user_id)))
+                db.query(func.count(Vote.id))
                 .filter(Vote.restaurant_id == winner.id, Vote.vote_date == today)
                 .scalar()
                 or 0
             )
 
             # Set the computed properties
-            winner.total_votes = float(total_votes)
-            winner.distinct_voters = int(distinct_voters)
+            winner.total_votes = int(total_votes)
+            winner.distinct_voters = int(total_votes)  # Same as total in standard voting
 
             # Ensure the restaurant is attached to the session
             db.add(winner)

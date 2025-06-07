@@ -5,14 +5,34 @@ from sqlalchemy import (
     Column,
     Date,
     DateTime,
+    Enum,
     Float,
     ForeignKey,
     Integer,
     String,
+    Table,
+    Text,
+    UniqueConstraint,
 )
 from sqlalchemy.orm import relationship
+import enum
 
 from app.db.session import Base
+
+
+class VoteSessionStatus(enum.Enum):
+    DRAFT = "draft"
+    ACTIVE = "active"
+    CLOSED = "closed"
+
+
+# Junction table for vote session and restaurants (many-to-many)
+vote_session_restaurants = Table(
+    'vote_session_restaurants',
+    Base.metadata,
+    Column('vote_session_id', Integer, ForeignKey('vote_session.id'), primary_key=True),
+    Column('restaurant_id', Integer, ForeignKey('restaurant.id'), primary_key=True)
+)
 
 
 class User(Base):
@@ -55,6 +75,7 @@ class Restaurant(Base):
     )
 
     votes = relationship("Vote", back_populates="restaurant")
+    vote_sessions = relationship("VoteSession", secondary=vote_session_restaurants, back_populates="restaurants")
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -101,3 +122,72 @@ class Vote(Base):
     # Relationships
     user = relationship("User", back_populates="votes")
     restaurant = relationship("Restaurant", back_populates="votes")
+
+
+class VoteSession(Base):
+    __tablename__ = "vote_session"
+
+    id = Column(Integer, primary_key=True, index=True)
+    title = Column(String, nullable=False)
+    description = Column(Text, nullable=True)
+    status = Column(Enum(VoteSessionStatus), nullable=False, default=VoteSessionStatus.DRAFT)
+    created_by_user_id = Column(Integer, ForeignKey("user.id"), nullable=False)
+    created_at = Column(
+        DateTime, nullable=False, default=lambda: datetime.now(timezone.utc)
+    )
+    started_at = Column(DateTime, nullable=True)
+    ended_at = Column(DateTime, nullable=True)
+    updated_at = Column(
+        DateTime,
+        nullable=False,
+        default=lambda: datetime.now(timezone.utc),
+        onupdate=lambda: datetime.now(timezone.utc),
+    )
+
+    # Relationships
+    created_by = relationship("User", foreign_keys=[created_by_user_id])
+    restaurants = relationship("Restaurant", secondary=vote_session_restaurants, back_populates="vote_sessions")
+    participations = relationship("VoteParticipation", back_populates="vote_session")
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self._total_votes: int = 0
+        self._results: list = []
+
+    @property
+    def total_votes(self) -> int:
+        return self._total_votes
+
+    @total_votes.setter
+    def total_votes(self, value: int) -> None:
+        self._total_votes = int(value)
+
+    @property
+    def results(self) -> list:
+        return self._results
+
+    @results.setter
+    def results(self, value: list) -> None:
+        self._results = value
+
+
+class VoteParticipation(Base):
+    __tablename__ = "vote_participation"
+
+    id = Column(Integer, primary_key=True, index=True)
+    vote_session_id = Column(Integer, ForeignKey("vote_session.id"), nullable=False)
+    user_id = Column(Integer, ForeignKey("user.id"), nullable=False)
+    restaurant_id = Column(Integer, ForeignKey("restaurant.id"), nullable=False)
+    voted_at = Column(
+        DateTime, nullable=False, default=lambda: datetime.now(timezone.utc)
+    )
+
+    # Relationships
+    vote_session = relationship("VoteSession", back_populates="participations")
+    user = relationship("User")
+    restaurant = relationship("Restaurant")
+
+    # Unique constraint: one vote per user per session
+    __table_args__ = (
+        UniqueConstraint('vote_session_id', 'user_id', name='unique_user_vote_per_session'),
+    )

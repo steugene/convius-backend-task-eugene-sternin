@@ -10,6 +10,9 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from app.db.session import Base
 from app.core.config import settings
 
+# Import all models so they are registered with Base.metadata
+import app.models.models  # This registers all models with Base.metadata
+
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
 config = context.config
