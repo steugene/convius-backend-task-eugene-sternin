@@ -65,16 +65,32 @@ jobs:
         echo "$HOME/.railway/bin" >> $GITHUB_PATH
 
     - name: 🚀 Deploy to Railway
-      env:
-        RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
-        RAILWAY_PROJECT_ID: ${{ vars.RAILWAY_PROJECT_ID }}
-        RAILWAY_ENVIRONMENT: production
       run: |
         echo "Debugging Railway CLI..."
+        railway --help | head -20
+        
+        echo "Checking login options..."
+        railway login --help || echo "Login help failed"
+        
+        # Try environment variable approach
+        export RAILWAY_TOKEN="${{ secrets.RAILWAY_TOKEN }}"
+        echo "Set RAILWAY_TOKEN environment variable"
+        
+        # Try direct authentication
+        echo "Attempting authentication..."
+        railway whoami || echo "Whoami failed, trying login..."
+        
+        # If whoami failed, try login with token
+        if ! railway whoami > /dev/null 2>&1; then
+          echo "Trying login with token..."
+          echo "${{ secrets.RAILWAY_TOKEN }}" | railway login || railway login --token "${{ secrets.RAILWAY_TOKEN }}" || echo "All login methods failed"
+        fi
+        
+        echo "Final authentication check..."
         railway whoami
         
         echo "Connecting to project ${{ vars.RAILWAY_PROJECT_ID }}..."
-        railway connect ${{ vars.RAILWAY_PROJECT_ID }} || echo "Connect failed, trying direct deployment..."
+        railway connect "${{ vars.RAILWAY_PROJECT_ID }}"
         
         echo "Deploying to Railway..."
         railway up --detach
