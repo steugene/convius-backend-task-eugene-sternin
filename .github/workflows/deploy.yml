@@ -38,6 +38,19 @@ jobs:
         python -m pip install --upgrade pip
         pip install -e ".[dev]"
 
+    - name: 🎨 Code formatting check
+      run: |
+        black --check app tests
+        isort --check-only app tests
+
+    - name: 🔍 Linting
+      run: |
+        flake8 app tests --max-line-length=88 --extend-ignore=E203,W503
+
+    - name: 🏗️ Type checking
+      run: |
+        mypy app --ignore-missing-imports
+
     - name: 🧪 Run tests
       env:
         POSTGRES_SERVER: localhost
