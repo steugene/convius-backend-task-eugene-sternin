@@ -70,17 +70,6 @@ jobs:
       run: |
         echo "Setting up Railway authentication..."
         
-        # Create Railway config directory and write token
-        mkdir -p ~/.railway
-        echo "${{ secrets.RAILWAY_TOKEN }}" > ~/.railway/token
-        chmod 600 ~/.railway/token
-        
-        echo "Verifying authentication..."
-        railway whoami
-        
-        echo "Connecting to project ${{ vars.RAILWAY_PROJECT_ID }}..."
-        railway connect "${{ vars.RAILWAY_PROJECT_ID }}"
-        
         echo "Deploying to Railway..."
         railway up --detach
 
