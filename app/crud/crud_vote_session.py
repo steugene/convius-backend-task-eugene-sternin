@@ -1,17 +1,20 @@
 from datetime import datetime, timezone
 from typing import List, Optional
 
-from sqlalchemy import and_, func
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 
-from app.core.config import settings
 from app.crud.base import CRUDBase
-from app.models.models import Restaurant, VoteSession, VoteSessionStatus, VoteParticipation
+from app.models.models import (
+    Restaurant,
+    VoteParticipation,
+    VoteSession,
+    VoteSessionStatus,
+)
 from app.schemas.vote_session import VoteSessionCreate, VoteSessionUpdate
 
 
 class CRUDVoteSession(CRUDBase[VoteSession, VoteSessionCreate, VoteSessionUpdate]):
-    
     def create_vote_session(
         self, db: Session, *, obj_in: VoteSessionCreate, created_by_user_id: int
     ) -> VoteSession:
@@ -20,7 +23,7 @@ class CRUDVoteSession(CRUDBase[VoteSession, VoteSessionCreate, VoteSessionUpdate
             title=obj_in.title,
             description=obj_in.description,
             created_by_user_id=created_by_user_id,
-            status=VoteSessionStatus.DRAFT
+            status=VoteSessionStatus.DRAFT,
         )
         db.add(db_obj)
         db.flush()
@@ -57,15 +60,17 @@ class CRUDVoteSession(CRUDBase[VoteSession, VoteSessionCreate, VoteSessionUpdate
         session = db.query(VoteSession).filter(VoteSession.id == session_id).first()
         if not session:
             raise ValueError("Vote session not found")
-        
+
         if session.created_by_user_id != user_id:
             raise ValueError("Only the session creator can add restaurants")
-        
+
         if session.status != VoteSessionStatus.DRAFT:
             raise ValueError("Can only add restaurants to draft sessions")
 
         # Get restaurants
-        restaurants = db.query(Restaurant).filter(Restaurant.id.in_(restaurant_ids)).all()
+        restaurants = (
+            db.query(Restaurant).filter(Restaurant.id.in_(restaurant_ids)).all()
+        )
         if len(restaurants) != len(restaurant_ids):
             raise ValueError("Some restaurants not found")
 
@@ -82,15 +87,17 @@ class CRUDVoteSession(CRUDBase[VoteSession, VoteSessionCreate, VoteSessionUpdate
         session = db.query(VoteSession).filter(VoteSession.id == session_id).first()
         if not session:
             raise ValueError("Vote session not found")
-        
+
         if session.created_by_user_id != user_id:
             raise ValueError("Only the session creator can remove restaurants")
-        
+
         if session.status != VoteSessionStatus.DRAFT:
             raise ValueError("Can only remove restaurants from draft sessions")
 
         # Remove restaurants from session
-        session.restaurants = [r for r in session.restaurants if r.id not in restaurant_ids]
+        session.restaurants = [
+            r for r in session.restaurants if r.id not in restaurant_ids
+        ]
         db.add(session)
         db.flush()
         return session
@@ -102,10 +109,10 @@ class CRUDVoteSession(CRUDBase[VoteSession, VoteSessionCreate, VoteSessionUpdate
         session = db.query(VoteSession).filter(VoteSession.id == session_id).first()
         if not session:
             raise ValueError("Vote session not found")
-        
+
         if session.created_by_user_id != user_id:
             raise ValueError("Only the session creator can start the session")
-        
+
         if session.status != VoteSessionStatus.DRAFT:
             raise ValueError("Can only start draft sessions")
 
@@ -118,17 +125,15 @@ class CRUDVoteSession(CRUDBase[VoteSession, VoteSessionCreate, VoteSessionUpdate
         db.flush()
         return session
 
-    def end_session(
-        self, db: Session, *, session_id: int, user_id: int
-    ) -> VoteSession:
+    def end_session(self, db: Session, *, session_id: int, user_id: int) -> VoteSession:
         """End a vote session (only by creator)"""
         session = db.query(VoteSession).filter(VoteSession.id == session_id).first()
         if not session:
             raise ValueError("Vote session not found")
-        
+
         if session.created_by_user_id != user_id:
             raise ValueError("Only the session creator can end the session")
-        
+
         if session.status != VoteSessionStatus.ACTIVE:
             raise ValueError("Can only end active sessions")
 
@@ -151,7 +156,7 @@ class CRUDVoteSession(CRUDBase[VoteSession, VoteSessionCreate, VoteSessionUpdate
             db.query(
                 Restaurant.id,
                 Restaurant.name,
-                func.count(VoteParticipation.id).label("vote_count")
+                func.count(VoteParticipation.id).label("vote_count"),
             )
             .select_from(Restaurant)
             .join(VoteParticipation, Restaurant.id == VoteParticipation.restaurant_id)
@@ -165,7 +170,8 @@ class CRUDVoteSession(CRUDBase[VoteSession, VoteSessionCreate, VoteSessionUpdate
         total_votes = (
             db.query(func.count(VoteParticipation.id))
             .filter(VoteParticipation.vote_session_id == session_id)
-            .scalar() or 0
+            .scalar()
+            or 0
         )
 
         # Set computed properties
@@ -174,7 +180,7 @@ class CRUDVoteSession(CRUDBase[VoteSession, VoteSessionCreate, VoteSessionUpdate
             {
                 "restaurant_id": result.id,
                 "restaurant_name": result.name,
-                "vote_count": result.vote_count
+                "vote_count": result.vote_count,
             }
             for result in results
         ]
@@ -182,4 +188,4 @@ class CRUDVoteSession(CRUDBase[VoteSession, VoteSessionCreate, VoteSessionUpdate
         return session
 
 
-vote_session = CRUDVoteSession(VoteSession) 
+vote_session = CRUDVoteSession(VoteSession)

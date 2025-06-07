@@ -52,4 +52,4 @@ exec gunicorn app.main:app \
     --access-logfile - \
     --error-logfile - \
     --timeout 120 \
-    --keep-alive 2 
+    --keep-alive 2

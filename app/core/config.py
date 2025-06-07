@@ -1,7 +1,7 @@
 import secrets
 from typing import Any, List, Optional, Union
 
-from pydantic import computed_field, field_validator
+from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -102,7 +102,6 @@ class Settings(BaseSettings):
             return "lunch_voting"
         return str(v)
 
-    @computed_field  # type: ignore[prop-decorator]
     @property
     def SQLALCHEMY_DATABASE_URI(self) -> str:
         # Check if Railway provides a DATABASE_URL (common pattern)
@@ -117,8 +116,9 @@ class Settings(BaseSettings):
 
         # Fallback to individual components
         return (
-            f"postgresql://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}"
-            f"@{self.POSTGRES_SERVER}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}"
+            f"postgresql://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}"  # noqa: E231
+            f"@{self.POSTGRES_SERVER}:{self.POSTGRES_PORT}/"  # noqa: E231
+            f"{self.POSTGRES_DB}"
         )
 
     # Security Configuration

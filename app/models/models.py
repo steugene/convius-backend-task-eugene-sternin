@@ -1,4 +1,6 @@
+import enum
 from datetime import datetime, timezone
+from typing import Optional
 
 from sqlalchemy import (
     Boolean,
@@ -14,8 +16,7 @@ from sqlalchemy import (
     Text,
     UniqueConstraint,
 )
-from sqlalchemy.orm import relationship
-import enum
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.session import Base
 
@@ -28,17 +29,17 @@ class VoteSessionStatus(enum.Enum):
 
 # Junction table for vote session and restaurants (many-to-many)
 vote_session_restaurants = Table(
-    'vote_session_restaurants',
+    "vote_session_restaurants",
     Base.metadata,
-    Column('vote_session_id', Integer, ForeignKey('vote_session.id'), primary_key=True),
-    Column('restaurant_id', Integer, ForeignKey('restaurant.id'), primary_key=True)
+    Column("vote_session_id", Integer, ForeignKey("vote_session.id"), primary_key=True),
+    Column("restaurant_id", Integer, ForeignKey("restaurant.id"), primary_key=True),
 )
 
 
 class User(Base):
     __tablename__ = "user"
 
-    id = Column(Integer, primary_key=True, index=True)
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
     email = Column(String, unique=True, index=True, nullable=False)
     hashed_password = Column(String, nullable=False)
     full_name = Column(String, nullable=True)
@@ -60,7 +61,7 @@ class User(Base):
 class Restaurant(Base):
     __tablename__ = "restaurant"
 
-    id = Column(Integer, primary_key=True, index=True)
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
     name = Column(String, index=True, nullable=False)
     description = Column(String, nullable=True)
     address = Column(String, nullable=True)
@@ -75,7 +76,9 @@ class Restaurant(Base):
     )
 
     votes = relationship("Vote", back_populates="restaurant")
-    vote_sessions = relationship("VoteSession", secondary=vote_session_restaurants, back_populates="restaurants")
+    vote_sessions = relationship(
+        "VoteSession", secondary=vote_session_restaurants, back_populates="restaurants"
+    )
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -102,9 +105,11 @@ class Restaurant(Base):
 class Vote(Base):
     __tablename__ = "vote"
 
-    id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey("user.id"), nullable=False)
-    restaurant_id = Column(Integer, ForeignKey("restaurant.id"), nullable=False)
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("user.id"), nullable=False)
+    restaurant_id: Mapped[int] = mapped_column(
+        Integer, ForeignKey("restaurant.id"), nullable=False
+    )
     vote_date = Column(
         Date, nullable=False, default=lambda: datetime.now(timezone.utc).date()
     )
@@ -127,16 +132,20 @@ class Vote(Base):
 class VoteSession(Base):
     __tablename__ = "vote_session"
 
-    id = Column(Integer, primary_key=True, index=True)
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
     title = Column(String, nullable=False)
     description = Column(Text, nullable=True)
-    status = Column(Enum(VoteSessionStatus), nullable=False, default=VoteSessionStatus.DRAFT)
-    created_by_user_id = Column(Integer, ForeignKey("user.id"), nullable=False)
+    status: Mapped[VoteSessionStatus] = mapped_column(
+        Enum(VoteSessionStatus), nullable=False, default=VoteSessionStatus.DRAFT
+    )
+    created_by_user_id: Mapped[int] = mapped_column(
+        Integer, ForeignKey("user.id"), nullable=False
+    )
     created_at = Column(
         DateTime, nullable=False, default=lambda: datetime.now(timezone.utc)
     )
-    started_at = Column(DateTime, nullable=True)
-    ended_at = Column(DateTime, nullable=True)
+    started_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
+    ended_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
     updated_at = Column(
         DateTime,
         nullable=False,
@@ -146,7 +155,9 @@ class VoteSession(Base):
 
     # Relationships
     created_by = relationship("User", foreign_keys=[created_by_user_id])
-    restaurants = relationship("Restaurant", secondary=vote_session_restaurants, back_populates="vote_sessions")
+    restaurants = relationship(
+        "Restaurant", secondary=vote_session_restaurants, back_populates="vote_sessions"
+    )
     participations = relationship("VoteParticipation", back_populates="vote_session")
 
     def __init__(self, **kwargs):
@@ -174,10 +185,14 @@ class VoteSession(Base):
 class VoteParticipation(Base):
     __tablename__ = "vote_participation"
 
-    id = Column(Integer, primary_key=True, index=True)
-    vote_session_id = Column(Integer, ForeignKey("vote_session.id"), nullable=False)
-    user_id = Column(Integer, ForeignKey("user.id"), nullable=False)
-    restaurant_id = Column(Integer, ForeignKey("restaurant.id"), nullable=False)
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    vote_session_id: Mapped[int] = mapped_column(
+        Integer, ForeignKey("vote_session.id"), nullable=False
+    )
+    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("user.id"), nullable=False)
+    restaurant_id: Mapped[int] = mapped_column(
+        Integer, ForeignKey("restaurant.id"), nullable=False
+    )
     voted_at = Column(
         DateTime, nullable=False, default=lambda: datetime.now(timezone.utc)
     )
@@ -189,5 +204,7 @@ class VoteParticipation(Base):
 
     # Unique constraint: one vote per user per session
     __table_args__ = (
-        UniqueConstraint('vote_session_id', 'user_id', name='unique_user_vote_per_session'),
+        UniqueConstraint(
+            "vote_session_id", "user_id", name="unique_user_vote_per_session"
+        ),
     )

@@ -1,25 +1,27 @@
 from typing import Optional
 
-from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm import Session
 
 from app.crud.base import CRUDBase
-from app.models.models import VoteParticipation, VoteSession, VoteSessionStatus, Restaurant
-from app.schemas.vote_session import VoteParticipationCreate, VoteParticipation as VoteParticipationSchema
+from app.models.models import VoteParticipation, VoteSession, VoteSessionStatus
+from app.schemas.vote_session import VoteParticipation as VoteParticipationSchema
+from app.schemas.vote_session import VoteParticipationCreate
 
 
-class CRUDVoteParticipation(CRUDBase[VoteParticipation, VoteParticipationCreate, VoteParticipationSchema]):
-    
+class CRUDVoteParticipation(
+    CRUDBase[VoteParticipation, VoteParticipationCreate, VoteParticipationSchema]
+):
     def vote_in_session(
         self, db: Session, *, session_id: int, restaurant_id: int, user_id: int
     ) -> VoteParticipation:
         """Cast or change a vote in a session"""
-        
+
         # Get the session and validate
         session = db.query(VoteSession).filter(VoteSession.id == session_id).first()
         if not session:
             raise ValueError("Vote session not found")
-        
+
         if session.status != VoteSessionStatus.ACTIVE:
             raise ValueError("Cannot vote in inactive session")
 
@@ -33,7 +35,7 @@ class CRUDVoteParticipation(CRUDBase[VoteParticipation, VoteParticipationCreate,
             db.query(VoteParticipation)
             .filter(
                 VoteParticipation.vote_session_id == session_id,
-                VoteParticipation.user_id == user_id
+                VoteParticipation.user_id == user_id,
             )
             .first()
         )
@@ -47,9 +49,7 @@ class CRUDVoteParticipation(CRUDBase[VoteParticipation, VoteParticipationCreate,
         else:
             # Create new vote
             db_obj = VoteParticipation(
-                vote_session_id=session_id,
-                user_id=user_id,
-                restaurant_id=restaurant_id
+                vote_session_id=session_id, user_id=user_id, restaurant_id=restaurant_id
             )
             try:
                 db.add(db_obj)
@@ -67,7 +67,7 @@ class CRUDVoteParticipation(CRUDBase[VoteParticipation, VoteParticipationCreate,
             db.query(VoteParticipation)
             .filter(
                 VoteParticipation.vote_session_id == session_id,
-                VoteParticipation.user_id == user_id
+                VoteParticipation.user_id == user_id,
             )
             .first()
         )
@@ -85,4 +85,4 @@ class CRUDVoteParticipation(CRUDBase[VoteParticipation, VoteParticipationCreate,
         )
 
 
-vote_participation = CRUDVoteParticipation(VoteParticipation) 
+vote_participation = CRUDVoteParticipation(VoteParticipation)

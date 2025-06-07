@@ -17,7 +17,7 @@ def get_client_id(request: Request) -> str:
     """
     # Try to get user ID from request state (set during authentication)
     if hasattr(request.state, "user") and request.state.user:
-        return f"user:{request.state.user.id}"
+        return f"user:{request.state.user.id}"  # noqa: E231
 
     # Fall back to IP address
     return get_remote_address(request)

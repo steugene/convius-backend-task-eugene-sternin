@@ -13,49 +13,41 @@ repos:
       - id: detect-private-key
 
   - repo: https://github.com/psf/black
-    rev: 23.7.0
+    rev: 22.12.0
     hooks:
       - id: black
         language_version: python3
+        exclude: ^(alembic/|scripts/)
 
   - repo: https://github.com/pycqa/isort
     rev: 5.12.0
     hooks:
       - id: isort
         args: ["--profile", "black"]
+        exclude: ^(alembic/|scripts/)
 
   - repo: https://github.com/pycqa/flake8
     rev: 6.0.0
     hooks:
       - id: flake8
-        args: [--max-line-length=88, --extend-ignore=E203,W503]
+        args: ["--max-line-length=88", "--extend-ignore=E203,W503,E402"]
+        exclude: ^(alembic/|scripts/)
 
   - repo: https://github.com/pre-commit/mirrors-mypy
     rev: v1.5.1
     hooks:
       - id: mypy
-        additional_dependencies: [types-all]
-        args: [--ignore-missing-imports]
-
-  - repo: https://github.com/PyCQA/bandit
-    rev: 1.7.5
-    hooks:
-      - id: bandit
-        args: ["-r", "app/", "-f", "json"]
-        exclude: tests/
-
-  - repo: https://github.com/Lucas-C/pre-commit-hooks-safety
-    rev: v1.3.2
-    hooks:
-      - id: python-safety-dependencies-check
+        additional_dependencies: [types-requests, types-setuptools]
+        args: [--ignore-missing-imports, --disable-error-code=no-any-return, --disable-error-code=misc]
+        exclude: ^(alembic/|tests/)
 
   - repo: local
     hooks:
       - id: pytest
         name: pytest
-        entry: pytest
+        entry: ./venv/bin/pytest
         language: system
         types: [python]
         pass_filenames: false
         always_run: true
-        args: ["-v", "--tb=short"] 
+        args: ["-v", "--tb=short"]

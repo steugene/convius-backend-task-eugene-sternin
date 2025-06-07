@@ -22,13 +22,13 @@ check_endpoint() {
     local endpoint=$1
     local expected_status=$2
     local description=$3
-    
+
     echo -e "${BLUE}🔍 Checking ${description}...${NC}"
-    
+
     response=$(curl -s -w "HTTPSTATUS:%{http_code}" "${BASE_URL}${endpoint}" || echo "HTTPSTATUS:000")
     status=$(echo "$response" | tr -d '\n' | sed -e 's/.*HTTPSTATUS://')
     body=$(echo "$response" | sed -e 's/HTTPSTATUS:.*//')
-    
+
     if [ "$status" -eq "$expected_status" ]; then
         echo -e "${GREEN}✅ ${description}: OK (${status})${NC}"
         return 0
@@ -46,11 +46,11 @@ check_json_endpoint() {
     local endpoint=$1
     local description=$2
     local expected_field=$3
-    
+
     echo -e "${BLUE}🔍 Checking ${description}...${NC}"
-    
+
     response=$(curl -s "${BASE_URL}${endpoint}" || echo '{"error": "connection_failed"}')
-    
+
     if echo "$response" | jq -e ".$expected_field" > /dev/null 2>&1; then
         echo -e "${GREEN}✅ ${description}: OK${NC}"
         if [ "$expected_field" = "status" ]; then
@@ -173,4 +173,4 @@ else
     echo -e "${RED}❌ Some health checks failed!${NC}"
     echo -e "${YELLOW}⚠️  Please check the failed endpoints above${NC}"
     exit 1
-fi 
+fi

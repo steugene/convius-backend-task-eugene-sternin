@@ -108,18 +108,18 @@ from typing import List, Optional
 from app.schemas.restaurant import Restaurant
 
 def get_restaurants(
-    db: Session, 
-    skip: int = 0, 
+    db: Session,
+    skip: int = 0,
     limit: int = 100
 ) -> List[Restaurant]:
     """
     Retrieve a list of restaurants with pagination.
-    
+
     Args:
         db: Database session
         skip: Number of records to skip
         limit: Maximum number of records to return
-        
+
     Returns:
         List of restaurant objects
     """
@@ -161,14 +161,14 @@ def test_create_restaurant_success(client, test_user_token):
         "description": "A test restaurant",
         "address": "123 Test St"
     }
-    
+
     # Act
     response = client.post(
         "/api/v1/restaurants/",
         json=restaurant_data,
         headers={"Authorization": f"Bearer {test_user_token}"}
     )
-    
+
     # Assert
     assert response.status_code == 201
     assert response.json()["name"] == restaurant_data["name"]
@@ -318,4 +318,4 @@ make docker-build
 
 Contributors are recognized in our [README.md](README.md) and release notes.
 
-Thank you for contributing! 🎉 
+Thank you for contributing! 🎉

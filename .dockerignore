@@ -72,4 +72,4 @@ docker-compose*.yml
 monitoring/
 
 # Scripts
-scripts/ 
+scripts/

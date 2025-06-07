@@ -44,15 +44,15 @@ echo -e "${BLUE}🔍 Running pre-deployment checks...${NC}"
 # Check if Docker is running (for local testing)
 if command -v docker &> /dev/null && docker ps &> /dev/null; then
     echo -e "${GREEN}✅ Docker is running${NC}"
-    
+
     # Build and test Docker image
     echo -e "${BLUE}🔨 Building Docker image...${NC}"
     docker build --target production -t lunch-voting-api:latest .
-    
+
     echo -e "${BLUE}🧪 Testing Docker image...${NC}"
     docker run --rm -d --name test-api -p 8001:8000 -e ENVIRONMENT=development lunch-voting-api:latest
     sleep 10
-    
+
     # Test health endpoint
     if curl -f http://localhost:8001/health &> /dev/null; then
         echo -e "${GREEN}✅ Docker image health check passed${NC}"
@@ -74,7 +74,7 @@ if command -v pytest &> /dev/null; then
     export POSTGRES_PASSWORD=postgres
     export POSTGRES_DB=lunch_voting_test
     export SECRET_KEY=test-secret-key
-    
+
     if pytest --tb=short -q; then
         echo -e "${GREEN}✅ All tests passed${NC}"
     else
@@ -129,4 +129,4 @@ echo -e "${BLUE}Useful commands:${NC}"
 echo -e "  View logs: ${YELLOW}railway logs${NC}"
 echo -e "  Open shell: ${YELLOW}railway shell${NC}"
 echo -e "  Check status: ${YELLOW}railway status${NC}"
-echo -e "  Open dashboard: ${YELLOW}railway open${NC}" 
+echo -e "  Open dashboard: ${YELLOW}railway open${NC}"

@@ -51,6 +51,9 @@ cp env.example .env
 
 # Install dependencies
 pip install -e ".[dev]"
+
+# Install pre-commit hooks for code quality
+pre-commit install
 ```
 
 ### 2. Database
@@ -73,6 +76,37 @@ uvicorn app.main:app --reload
 open http://localhost:8000/docs
 ```
 
+## 🛠️ Development
+
+### Code Quality
+
+This project uses pre-commit hooks to ensure code quality and consistency:
+
+```bash
+# Pre-commit hooks run automatically on git commit
+git commit -m "Your commit message"
+
+# Run hooks manually on all files
+pre-commit run --all-files
+
+# Individual tools can also be run directly
+black app tests          # Code formatting
+isort app tests          # Import sorting
+flake8 app tests         # Linting
+mypy app                 # Type checking
+pytest                   # Tests
+```
+
+**Pre-commit Hooks Include:**
+- ✅ **Black**: Code formatting
+- ✅ **isort**: Import sorting
+- ✅ **flake8**: Style and error checking
+- ✅ **mypy**: Static type checking
+- ✅ **pytest**: Automated testing
+- ✅ File cleanup (trailing whitespace, end of file)
+
+All code must pass these checks before being committed!
+
 ## 📡 API Documentation
 
 ### 🎯 Quick API Overview
@@ -84,7 +118,7 @@ open http://localhost:8000/docs
 | **Voting** | Daily weighted voting system | `/restaurants/winner/today` |
 | **Health** | System monitoring | `/health`, `/metrics` |
 
-> 💡 **Tip**: Visit the [Swagger UI](https://conviustask-production.up.railway.app/docs) for complete API documentation with interactive testing! 
+> 💡 **Tip**: Visit the [Swagger UI](https://conviustask-production.up.railway.app/docs) for complete API documentation with interactive testing!
 
 ## 🔒 Security
 
@@ -181,9 +215,13 @@ LOG_LEVEL=INFO
 
 1. Fork the repository
 2. Create a feature branch
-3. Add tests for new functionality
-4. Run the test suite
-5. Submit a pull request
+3. Install dev dependencies: `pip install -e ".[dev]"`
+4. Install pre-commit hooks: `pre-commit install`
+5. Add tests for new functionality
+6. Ensure all pre-commit hooks pass: `pre-commit run --all-files`
+7. Submit a pull request
+
+**Note**: All commits must pass pre-commit hooks (formatting, linting, type checking, and tests).
 
 ## 🆘 Support
 

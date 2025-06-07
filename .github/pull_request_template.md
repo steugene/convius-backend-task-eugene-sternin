@@ -47,4 +47,4 @@ If applicable, add screenshots or demo videos.
 Any special deployment considerations or environment variable changes needed.
 
 ## 📝 Additional Notes
-Add any additional notes for reviewers. 
+Add any additional notes for reviewers.

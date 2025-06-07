@@ -9,4 +9,4 @@ healthcheckTimeout = 300
 
 [services.app]
 source = "."
-watch = ["app/", "alembic/", "pyproject.toml"] 
+watch = ["app/", "alembic/", "pyproject.toml"]

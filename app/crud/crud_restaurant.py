@@ -80,7 +80,9 @@ class CRUDRestaurant(CRUDBase[Restaurant, RestaurantCreate, RestaurantUpdate]):
 
             # Set the computed properties
             winner.total_votes = int(total_votes)
-            winner.distinct_voters = int(total_votes)  # Same as total in standard voting
+            winner.distinct_voters = int(
+                total_votes
+            )  # Same as total in standard voting
 
             # Ensure the restaurant is attached to the session
             db.add(winner)

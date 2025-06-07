@@ -75,4 +75,4 @@ EXPOSE 8000
 # Health check handled by Railway via railway.toml
 
 # Default command (Railway will override this with startCommand)
-CMD ["bash", "start.sh"] 
+CMD ["bash", "start.sh"]

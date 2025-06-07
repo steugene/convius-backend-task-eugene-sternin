@@ -115,4 +115,4 @@ pre-commit: ## Run pre-commit hooks on all files
 	pre-commit run --all-files
 
 install-hooks: ## Install pre-commit hooks
-	pre-commit install 
+	pre-commit install

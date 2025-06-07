@@ -42,4 +42,4 @@ Describe any alternative solutions or features you've considered.
 If you have ideas on how to implement this feature, please share them here.
 
 ## 📋 Additional Context
-Add any other context, screenshots, or examples about the feature request here. 
+Add any other context, screenshots, or examples about the feature request here.

@@ -35,20 +35,20 @@ class CRUDVote(CRUDBase[Vote, VoteCreate, VoteUpdate]):
             .all()
         )
 
-    def create_vote(
-        self, db: Session, *, obj_in: VoteCreate, user_id: int
-    ) -> Vote:
+    def create_vote(self, db: Session, *, obj_in: VoteCreate, user_id: int) -> Vote:
         today = self.get_current_date()
-        
+
         # Check if voting is still allowed (before deadline)
         now = datetime.now().time()
         deadline = time(settings.VOTING_DEADLINE_HOUR, settings.VOTING_DEADLINE_MINUTE)
-        
+
         if now > deadline:
             raise ValueError(
-                f"Voting is closed. Deadline was {settings.VOTING_DEADLINE_HOUR:02d}:{settings.VOTING_DEADLINE_MINUTE:02d}"
+                f"Voting is closed. Deadline was "
+                f"{settings.VOTING_DEADLINE_HOUR:02d}:"  # noqa: E231
+                f"{settings.VOTING_DEADLINE_MINUTE:02d}"  # noqa: E231
             )
-        
+
         # Check if it's a weekday (optional - most lunch voting is weekdays only)
         if datetime.now().weekday() >= 5:  # Saturday = 5, Sunday = 6
             raise ValueError("Voting is only allowed on weekdays")
@@ -59,14 +59,14 @@ class CRUDVote(CRUDBase[Vote, VoteCreate, VoteUpdate]):
             .filter(Vote.user_id == user_id, Vote.vote_date == today)
             .first()
         )
-        
+
         if existing_vote:
             # Update existing vote (change restaurant choice)
             existing_vote.restaurant_id = obj_in.restaurant_id
             db.add(existing_vote)
             db.flush()
             return existing_vote
-        
+
         # Create new vote with standard weight of 1.0
         db_obj = Vote(
             user_id=user_id,
@@ -89,7 +89,9 @@ class CRUDVote(CRUDBase[Vote, VoteCreate, VoteUpdate]):
                 Restaurant.id.label("winning_restaurant_id"),
                 Restaurant.name.label("winning_restaurant_name"),
                 func.count(Vote.id).label("total_votes"),
-                func.count(Vote.id).label("distinct_voters"),  # Same as total in standard voting
+                func.count(Vote.id).label(
+                    "distinct_voters"
+                ),  # Same as total in standard voting
             )
             .join(Restaurant)
             .filter(Vote.vote_date.between(start_date, end_date))

@@ -18,8 +18,9 @@ class VoteSessionCreate(VoteSessionBase):
 
 
 # Properties to receive on item update
-class VoteSessionUpdate(VoteSessionBase):
+class VoteSessionUpdate(BaseModel):
     title: Optional[str] = None
+    description: Optional[str] = None
 
 
 # Properties shared by models stored in DB
@@ -82,5 +83,6 @@ class VoteParticipation(VoteParticipationInDBBase):
 
 
 # Import Restaurant here to avoid circular imports
-from app.schemas.restaurant import Restaurant
-VoteSessionWithRestaurants.model_rebuild() 
+from app.schemas.restaurant import Restaurant  # noqa: E402
+
+VoteSessionWithRestaurants.model_rebuild()

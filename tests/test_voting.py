@@ -5,17 +5,17 @@ from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 
 from app.core.config import settings
-from app.models.models import Restaurant, User
+from app.models.models import Restaurant
 
 
 def test_vote_restaurant(
     authorized_client: TestClient, test_restaurant: Restaurant
 ) -> None:
     # Mock valid voting time (weekday before 14:00)
-    with patch('app.crud.crud_vote.datetime') as mock_datetime:
+    with patch("app.crud.crud_vote.datetime") as mock_datetime:
         mock_datetime.now.return_value.time.return_value = time(12, 0)  # 12 PM
         mock_datetime.now.return_value.weekday.return_value = 1  # Tuesday
-        
+
         response = authorized_client.post(
             f"{settings.API_V1_STR}/restaurants/{test_restaurant.id}/vote"
         )
@@ -32,14 +32,12 @@ def test_vote_nonexistent_restaurant(authorized_client: TestClient) -> None:
     assert "not found" in response.json()["detail"]
 
 
-def test_vote_change(
-    authorized_client: TestClient, db: Session
-) -> None:
+def test_vote_change(authorized_client: TestClient, db: Session) -> None:
     # Mock valid voting time (weekday before 14:00)
-    with patch('app.crud.crud_vote.datetime') as mock_datetime:
+    with patch("app.crud.crud_vote.datetime") as mock_datetime:
         mock_datetime.now.return_value.time.return_value = time(12, 0)  # 12 PM
         mock_datetime.now.return_value.weekday.return_value = 1  # Tuesday
-        
+
         # Create two restaurants
         restaurant1 = Restaurant(name="Restaurant 1", description="First restaurant")
         restaurant2 = Restaurant(name="Restaurant 2", description="Second restaurant")
@@ -47,7 +45,7 @@ def test_vote_change(
         db.commit()
         db.refresh(restaurant1)
         db.refresh(restaurant2)
-        
+
         # Store IDs before they might become detached
         restaurant1_id = restaurant1.id
         restaurant2_id = restaurant2.id
@@ -65,7 +63,7 @@ def test_vote_change(
             f"{settings.API_V1_STR}/restaurants/{restaurant2_id}/vote"
         )
         assert response.status_code == 200
-        
+
         # Check restaurant1 now has 0 votes
         response = authorized_client.get(
             f"{settings.API_V1_STR}/restaurants/{restaurant1_id}"
@@ -79,10 +77,10 @@ def test_simple_voting(
     authorized_client: TestClient, db: Session, test_restaurant: Restaurant
 ) -> None:
     # Mock valid voting time (weekday before 14:00)
-    with patch('app.crud.crud_vote.datetime') as mock_datetime:
+    with patch("app.crud.crud_vote.datetime") as mock_datetime:
         mock_datetime.now.return_value.time.return_value = time(12, 0)  # 12 PM
         mock_datetime.now.return_value.weekday.return_value = 1  # Tuesday
-        
+
         # Vote for restaurant
         response = authorized_client.post(
             f"{settings.API_V1_STR}/restaurants/{test_restaurant.id}/vote"
@@ -109,10 +107,10 @@ def test_vote_history(
     test_dates: tuple[date, date],
 ) -> None:
     # Mock valid voting time (weekday before 14:00)
-    with patch('app.crud.crud_vote.datetime') as mock_datetime:
+    with patch("app.crud.crud_vote.datetime") as mock_datetime:
         mock_datetime.now.return_value.time.return_value = time(12, 0)  # 12 PM
         mock_datetime.now.return_value.weekday.return_value = 1  # Tuesday
-        
+
         # Add a vote (only one since user can vote once)
         response = authorized_client.post(
             f"{settings.API_V1_STR}/restaurants/{test_restaurant.id}/vote"
@@ -136,10 +134,10 @@ def test_vote_history(
 
 def test_winner_determination(authorized_client: TestClient, db: Session) -> None:
     # Mock valid voting time (weekday before 14:00)
-    with patch('app.crud.crud_vote.datetime') as mock_datetime:
+    with patch("app.crud.crud_vote.datetime") as mock_datetime:
         mock_datetime.now.return_value.time.return_value = time(12, 0)  # 12 PM
         mock_datetime.now.return_value.weekday.return_value = 1  # Tuesday
-        
+
         # Create two restaurants
         restaurant1 = Restaurant(name="Restaurant 1", description="First restaurant")
         restaurant2 = Restaurant(name="Restaurant 2", description="Second restaurant")
@@ -155,7 +153,9 @@ def test_winner_determination(authorized_client: TestClient, db: Session) -> Non
         assert response.status_code == 200
 
         # Get winner - restaurant1 should win with 1 vote vs 0
-        response = authorized_client.get(f"{settings.API_V1_STR}/restaurants/winner/today")
+        response = authorized_client.get(
+            f"{settings.API_V1_STR}/restaurants/winner/today"
+        )
         assert response.status_code == 200
         content = response.json()
         assert content["id"] == restaurant1.id  # Should win with 1 vote vs 0
@@ -165,10 +165,10 @@ def test_voting_deadline(
     authorized_client: TestClient, test_restaurant: Restaurant
 ) -> None:
     # Mock the current time to be after voting deadline (15:00)
-    with patch('app.crud.crud_vote.datetime') as mock_datetime:
+    with patch("app.crud.crud_vote.datetime") as mock_datetime:
         mock_datetime.now.return_value.time.return_value = time(15, 0)  # 3 PM
         mock_datetime.now.return_value.weekday.return_value = 1  # Tuesday (weekday)
-        
+
         response = authorized_client.post(
             f"{settings.API_V1_STR}/restaurants/{test_restaurant.id}/vote"
         )
@@ -181,10 +181,12 @@ def test_weekend_voting(
     authorized_client: TestClient, test_restaurant: Restaurant
 ) -> None:
     # Mock the current time to be on a Saturday (weekday 5)
-    with patch('app.crud.crud_vote.datetime') as mock_datetime:
+    with patch("app.crud.crud_vote.datetime") as mock_datetime:
         mock_datetime.now.return_value.weekday.return_value = 5  # Saturday
-        mock_datetime.now.return_value.time.return_value = time(12, 0)  # 12 PM (before deadline)
-        
+        mock_datetime.now.return_value.time.return_value = time(
+            12, 0
+        )  # 12 PM (before deadline)
+
         response = authorized_client.post(
             f"{settings.API_V1_STR}/restaurants/{test_restaurant.id}/vote"
         )

@@ -8,7 +8,7 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
-    
+
     services:
       postgres:
         image: postgres:15
@@ -86,4 +86,4 @@ jobs:
         else
           echo "❌ Deployment failed!"
           exit 1
-        fi 
+        fi

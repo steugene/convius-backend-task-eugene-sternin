@@ -6,13 +6,13 @@ from sqlalchemy.orm import Session
 from app import crud, models
 from app.api import deps
 from app.schemas.vote_session import (
+    VoteParticipation,
+    VoteParticipationCreate,
     VoteSession,
     VoteSessionCreate,
     VoteSessionUpdate,
     VoteSessionWithRestaurants,
     VoteSessionWithResults,
-    VoteParticipationCreate,
-    VoteParticipation,
 )
 
 router = APIRouter()
@@ -109,10 +109,10 @@ def update_vote_session(
     session = crud.vote_session.get(db, id=session_id)
     if not session:
         raise HTTPException(status_code=404, detail="Vote session not found")
-    
+
     if session.created_by_user_id != current_user.id:
         raise HTTPException(status_code=403, detail="Not enough permissions")
-    
+
     session = crud.vote_session.update(db, db_obj=session, obj_in=session_in)
     db.commit()
     return session
@@ -131,7 +131,10 @@ def add_restaurants_to_session(
     """
     try:
         session = crud.vote_session.add_restaurants_to_session(
-            db, session_id=session_id, restaurant_ids=restaurant_ids, user_id=current_user.id
+            db,
+            session_id=session_id,
+            restaurant_ids=restaurant_ids,
+            user_id=current_user.id,
         )
         db.commit()
         return session
@@ -152,7 +155,10 @@ def remove_restaurants_from_session(
     """
     try:
         session = crud.vote_session.remove_restaurants_from_session(
-            db, session_id=session_id, restaurant_ids=restaurant_ids, user_id=current_user.id
+            db,
+            session_id=session_id,
+            restaurant_ids=restaurant_ids,
+            user_id=current_user.id,
         )
         db.commit()
         return session
@@ -213,10 +219,10 @@ def vote_in_session(
     """
     try:
         vote = crud.vote_participation.vote_in_session(
-            db, 
-            session_id=session_id, 
-            restaurant_id=vote_in.restaurant_id, 
-            user_id=current_user.id
+            db,
+            session_id=session_id,
+            restaurant_id=vote_in.restaurant_id,
+            user_id=current_user.id,
         )
         db.commit()
         return vote
@@ -257,4 +263,4 @@ def get_session_votes(
     votes = crud.vote_participation.get_session_votes(
         db, session_id=session_id, skip=skip, limit=limit
     )
-    return votes 
+    return votes

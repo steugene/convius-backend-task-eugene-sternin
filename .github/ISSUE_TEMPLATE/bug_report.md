@@ -39,4 +39,4 @@ Paste any relevant error logs here
 ```
 
 ## 📝 Possible Solution
-If you have suggestions on a fix for the bug, please describe it here. 
+If you have suggestions on a fix for the bug, please describe it here.

@@ -9,7 +9,7 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
-    
+
     services:
       postgres:
         image: postgres:15
@@ -82,4 +82,4 @@ jobs:
       with:
         file: ./coverage.xml
         flags: unittests
-        name: codecov-umbrella 
+        name: codecov-umbrella
