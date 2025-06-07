@@ -1,8 +1,9 @@
-from typing import Optional, Dict, Any
-from fastapi import Request, HTTPException
+from typing import Any, Dict, Optional
+
+from fastapi import HTTPException, Request
 from slowapi import Limiter, _rate_limit_exceeded_handler
-from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
+from slowapi.util import get_remote_address
 
 from app.core.config import settings
 from app.core.logging import get_logger

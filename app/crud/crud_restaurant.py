@@ -1,7 +1,8 @@
-from typing import List, Optional
-from sqlalchemy.orm import Session
-from sqlalchemy import func
 from datetime import date
+from typing import List, Optional
+
+from sqlalchemy import func
+from sqlalchemy.orm import Session
 
 from app.crud.base import CRUDBase
 from app.models.models import Restaurant, Vote

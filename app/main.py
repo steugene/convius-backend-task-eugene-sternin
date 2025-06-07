@@ -1,19 +1,19 @@
+import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
-import uvicorn
 
 from app.api.v1.api import api_router
 from app.core.config import settings
-from app.core.logging import setup_logging, get_logger
+from app.core.logging import get_logger, setup_logging
 from app.core.middleware import (
     ErrorHandlerMiddleware,
     RequestTrackingMiddleware,
     SecurityHeadersMiddleware,
 )
-from app.core.rate_limiter import limiter, custom_rate_limit_handler
+from app.core.rate_limiter import custom_rate_limit_handler, limiter
 
 # Initialize logging
 setup_logging()

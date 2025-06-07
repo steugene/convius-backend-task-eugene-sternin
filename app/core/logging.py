@@ -2,7 +2,7 @@ import logging
 import logging.config
 import sys
 from pathlib import Path
-from typing import Dict, Any
+from typing import Any, Dict
 
 from app.core.config import settings
 

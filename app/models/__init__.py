@@ -1,1 +1,1 @@
-from app.models.models import User, Restaurant, Vote
+from app.models.models import Restaurant, User, Vote

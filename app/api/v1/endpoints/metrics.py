@@ -1,9 +1,10 @@
 from typing import Any, Dict
+
 from fastapi import APIRouter, Depends
 from fastapi.responses import PlainTextResponse
-from prometheus_client import Counter, Histogram, generate_latest, CONTENT_TYPE_LATEST
-from sqlalchemy.orm import Session
+from prometheus_client import CONTENT_TYPE_LATEST, Counter, Histogram, generate_latest
 from sqlalchemy import text
+from sqlalchemy.orm import Session
 
 from app.api.deps import get_db
 from app.core.config import settings

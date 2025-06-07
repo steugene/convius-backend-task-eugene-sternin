@@ -1,11 +1,12 @@
 from datetime import date
-from typing import List, Optional, Dict, Any
-from sqlalchemy.orm import Session
+from typing import Any, Dict, List, Optional
+
 from sqlalchemy import func
+from sqlalchemy.orm import Session
 
 from app.core.config import settings
 from app.crud.base import CRUDBase
-from app.models.models import Vote, Restaurant
+from app.models.models import Restaurant, Vote
 from app.schemas.vote import VoteCreate, VoteUpdate
 
 

@@ -1,7 +1,8 @@
 from typing import Any, Dict
+
 from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.orm import Session
 from sqlalchemy import text
+from sqlalchemy.orm import Session
 
 from app.api.deps import get_db
 from app.core.config import settings

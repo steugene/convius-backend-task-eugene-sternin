@@ -1,14 +1,15 @@
 from datetime import datetime, timezone
+
 from sqlalchemy import (
+    Boolean,
     Column,
+    Date,
+    DateTime,
+    Float,
+    ForeignKey,
     Integer,
     String,
-    ForeignKey,
-    Float,
-    Date,
     UniqueConstraint,
-    Boolean,
-    DateTime,
 )
 from sqlalchemy.orm import relationship
 
