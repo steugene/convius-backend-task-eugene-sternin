@@ -10,8 +10,8 @@ from app.core.config import settings
 from app.core.logging import setup_logging, get_logger
 from app.core.middleware import (
     ErrorHandlerMiddleware,
-    RequestTrackingMiddleware, 
-    SecurityHeadersMiddleware
+    RequestTrackingMiddleware,
+    SecurityHeadersMiddleware,
 )
 from app.core.rate_limiter import limiter, custom_rate_limit_handler
 
@@ -41,7 +41,7 @@ app.add_middleware(RequestTrackingMiddleware)
 if settings.ENVIRONMENT == "production":
     app.add_middleware(
         TrustedHostMiddleware,
-        allowed_hosts=["*"]  # Configure with your actual domains in production
+        allowed_hosts=["*"],  # Configure with your actual domains in production
     )
 
 # CORS middleware
@@ -57,6 +57,7 @@ if settings.BACKEND_CORS_ORIGINS:
 # Include API router
 app.include_router(api_router, prefix=settings.API_V1_STR)
 
+
 # Root endpoint for load balancer health checks
 @app.get("/")
 async def root():
@@ -65,8 +66,9 @@ async def root():
         "service": settings.PROJECT_NAME,
         "version": settings.VERSION,
         "status": "running",
-        "environment": settings.ENVIRONMENT
+        "environment": settings.ENVIRONMENT,
     }
+
 
 # Health check endpoint for Railway
 @app.get("/health")
@@ -76,8 +78,9 @@ async def health():
         "status": "healthy",
         "service": settings.PROJECT_NAME,
         "version": settings.VERSION,
-        "environment": settings.ENVIRONMENT
+        "environment": settings.ENVIRONMENT,
     }
+
 
 @app.on_event("startup")
 async def startup_event():
@@ -87,10 +90,12 @@ async def startup_event():
     logger.info(f"🔧 Debug mode: {settings.DEBUG}")
     logger.info(f"📊 API Documentation: {'/docs' if settings.DEBUG else 'disabled'}")
 
+
 @app.on_event("shutdown")
 async def shutdown_event():
     """Application shutdown event."""
     logger.info(f"🛑 Shutting down {settings.PROJECT_NAME}")
+
 
 if __name__ == "__main__":
     uvicorn.run(
@@ -100,4 +105,4 @@ if __name__ == "__main__":
         reload=settings.DEBUG,
         log_level=settings.LOG_LEVEL.lower(),
         access_log=True,
-    ) 
+    )

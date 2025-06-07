@@ -10,6 +10,7 @@ from app.schemas.vote import VoteHistory
 
 router = APIRouter()
 
+
 @router.get("/history", response_model=List[VoteHistory])
 def read_vote_history(
     *,
@@ -26,13 +27,13 @@ def read_vote_history(
         start_date = date.today() - timedelta(days=7)
     if not end_date:
         end_date = date.today()
-    
+
     if start_date > end_date:
         raise ValueError("start_date must be before end_date")
-    
+
     history = vote.get_vote_history(
         db,
         start_date=start_date,
         end_date=end_date,
     )
-    return history 
+    return history

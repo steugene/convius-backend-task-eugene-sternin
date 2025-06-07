@@ -13,10 +13,10 @@ from app.schemas.user import User, UserCreate
 
 router = APIRouter()
 
+
 @router.post("/login", response_model=Token)
 def login_access_token(
-    db: Session = Depends(get_db),
-    form_data: OAuth2PasswordRequestForm = Depends()
+    db: Session = Depends(get_db), form_data: OAuth2PasswordRequestForm = Depends()
 ) -> Any:
     """
     OAuth2 compatible token login, get an access token for future requests
@@ -36,6 +36,7 @@ def login_access_token(
         "token_type": "bearer",
     }
 
+
 @router.post("/register", response_model=User)
 def register_user(
     *,
@@ -52,4 +53,4 @@ def register_user(
             detail="The user with this email already exists in the system.",
         )
     user_obj = user.create(db, obj_in=user_in)
-    return user_obj 
+    return user_obj

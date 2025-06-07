@@ -6,6 +6,7 @@ from app.crud.crud_user import user
 from app.models.models import User
 from app.schemas.user import UserCreate
 
+
 def test_register_user(client: TestClient, db: Session) -> None:
     data = {
         "email": "newuser@example.com",
@@ -20,6 +21,7 @@ def test_register_user(client: TestClient, db: Session) -> None:
     assert "id" in content
     assert "hashed_password" not in content
 
+
 def test_register_existing_user(client: TestClient, test_user: User) -> None:
     data = {
         "email": test_user.email,
@@ -29,6 +31,7 @@ def test_register_existing_user(client: TestClient, test_user: User) -> None:
     response = client.post(f"{settings.API_V1_STR}/auth/register", json=data)
     assert response.status_code == 400
     assert "already exists" in response.json()["detail"]
+
 
 def test_login_success(client: TestClient, test_user: User) -> None:
     login_data = {
@@ -41,6 +44,7 @@ def test_login_success(client: TestClient, test_user: User) -> None:
     assert "access_token" in content
     assert content["token_type"] == "bearer"
 
+
 def test_login_wrong_password(client: TestClient, test_user: User) -> None:
     login_data = {
         "username": test_user.email,
@@ -49,6 +53,7 @@ def test_login_wrong_password(client: TestClient, test_user: User) -> None:
     response = client.post(f"{settings.API_V1_STR}/auth/login", data=login_data)
     assert response.status_code == 400
     assert "Incorrect email or password" in response.json()["detail"]
+
 
 def test_login_nonexistent_user(client: TestClient) -> None:
     login_data = {
@@ -59,6 +64,7 @@ def test_login_nonexistent_user(client: TestClient) -> None:
     assert response.status_code == 400
     assert "Incorrect email or password" in response.json()["detail"]
 
+
 def test_login_inactive_user(client: TestClient, db: Session) -> None:
     # Create inactive user
     user_in = UserCreate(
@@ -68,11 +74,11 @@ def test_login_inactive_user(client: TestClient, db: Session) -> None:
         is_active=False,
     )
     user_obj = user.create(db, obj_in=user_in)
-    
+
     login_data = {
         "username": user_obj.email,
         "password": "password",
     }
     response = client.post(f"{settings.API_V1_STR}/auth/login", data=login_data)
     assert response.status_code == 400
-    assert "Inactive user" in response.json()["detail"] 
+    assert "Inactive user" in response.json()["detail"]

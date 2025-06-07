@@ -14,28 +14,21 @@ router = APIRouter()
 
 # Prometheus metrics
 REQUEST_COUNT = Counter(
-    'http_requests_total',
-    'Total HTTP requests',
-    ['method', 'endpoint', 'status_code']
+    "http_requests_total", "Total HTTP requests", ["method", "endpoint", "status_code"]
 )
 
 REQUEST_DURATION = Histogram(
-    'http_request_duration_seconds',
-    'HTTP request duration in seconds',
-    ['method', 'endpoint']
+    "http_request_duration_seconds",
+    "HTTP request duration in seconds",
+    ["method", "endpoint"],
 )
 
-VOTE_COUNT = Counter(
-    'votes_total',
-    'Total votes cast',
-    ['restaurant_id']
-)
+VOTE_COUNT = Counter("votes_total", "Total votes cast", ["restaurant_id"])
 
 DATABASE_CONNECTIONS = Counter(
-    'database_connections_total',
-    'Total database connections',
-    ['status']
+    "database_connections_total", "Total database connections", ["status"]
 )
+
 
 @router.get("/metrics")
 def get_metrics() -> PlainTextResponse:
@@ -43,10 +36,8 @@ def get_metrics() -> PlainTextResponse:
     Prometheus metrics endpoint.
     Returns metrics in Prometheus format.
     """
-    return PlainTextResponse(
-        generate_latest(),
-        media_type=CONTENT_TYPE_LATEST
-    )
+    return PlainTextResponse(generate_latest(), media_type=CONTENT_TYPE_LATEST)
+
 
 @router.get("/metrics/health")
 def get_health_metrics(db: Session = Depends(get_db)) -> Dict[str, Any]:
@@ -62,35 +53,31 @@ def get_health_metrics(db: Session = Depends(get_db)) -> Dict[str, Any]:
         logger.error(f"Database health check failed: {e}")
         db_healthy = False
         DATABASE_CONNECTIONS.labels(status="error").inc()
-    
+
     # Get basic stats
     try:
         # Get total votes count
         total_votes = db.execute(text("SELECT COUNT(*) FROM vote")).scalar()
-        
+
         # Get total restaurants count
         total_restaurants = db.execute(text("SELECT COUNT(*) FROM restaurant")).scalar()
-        
+
         # Get total users count
-        total_users = db.execute(text("SELECT COUNT(*) FROM \"user\"")).scalar()
-        
+        total_users = db.execute(text('SELECT COUNT(*) FROM "user"')).scalar()
+
         stats = {
             "total_votes": total_votes,
             "total_restaurants": total_restaurants,
-            "total_users": total_users
+            "total_users": total_users,
         }
     except Exception as e:
         logger.error(f"Failed to get stats: {e}")
-        stats = {
-            "total_votes": 0,
-            "total_restaurants": 0,
-            "total_users": 0
-        }
-    
+        stats = {"total_votes": 0, "total_restaurants": 0, "total_users": 0}
+
     return {
         "service": settings.PROJECT_NAME,
         "version": settings.VERSION,
         "environment": settings.ENVIRONMENT,
         "database_healthy": db_healthy,
-        "stats": stats
-    } 
+        "stats": stats,
+    }

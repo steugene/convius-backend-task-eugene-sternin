@@ -6,13 +6,14 @@ from typing import Dict, Any
 
 from app.core.config import settings
 
+
 def setup_logging() -> None:
     """Configure logging for the application."""
-    
+
     # Create logs directory if it doesn't exist
     log_dir = Path("logs")
     log_dir.mkdir(exist_ok=True)
-    
+
     logging_config: Dict[str, Any] = {
         "version": 1,
         "disable_existing_loggers": False,
@@ -88,15 +89,15 @@ def setup_logging() -> None:
             "handlers": ["console", "file", "error_file"],
         },
     }
-    
+
     # Use JSON formatter in production
     if settings.ENVIRONMENT == "production":
         logging_config["handlers"]["file"]["formatter"] = "json"
         logging_config["handlers"]["error_file"]["formatter"] = "json"
-    
+
     logging.config.dictConfig(logging_config)
 
 
 def get_logger(name: str) -> logging.Logger:
     """Get a logger instance."""
-    return logging.getLogger(f"app.{name}") 
+    return logging.getLogger(f"app.{name}")

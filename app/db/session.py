@@ -7,9 +7,12 @@ from app.core.logging import get_logger
 
 logger = get_logger(__name__)
 
+
 class Base(DeclarativeBase):
     """Base class for all database models"""
+
     pass
+
 
 # Create engine with production-ready settings
 engine = create_engine(
@@ -28,9 +31,11 @@ SessionLocal = sessionmaker(
     expire_on_commit=False,
 )
 
+
 def get_engine():
     """Get the database engine (for testing compatibility)."""
     return engine
+
 
 def get_db() -> Generator[Session, None, None]:
     """
@@ -44,4 +49,4 @@ def get_db() -> Generator[Session, None, None]:
         db.rollback()
         raise
     finally:
-        db.close() 
+        db.close()

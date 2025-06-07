@@ -3,21 +3,19 @@ from typing import List, Union, Any, Optional
 from pydantic import field_validator, ConfigDict, computed_field
 from pydantic_settings import BaseSettings
 
+
 class Settings(BaseSettings):
     model_config = ConfigDict(
-        env_file=".env",
-        env_ignore_empty=True,
-        extra="ignore",
-        case_sensitive=True
+        env_file=".env", env_ignore_empty=True, extra="ignore", case_sensitive=True
     )
-    
+
     # Project Configuration
     PROJECT_NAME: str = "Lunch Voting API"
     VERSION: str = "1.0.0"
     API_V1_STR: str = "/api/v1"
     ENVIRONMENT: str = "development"  # development, staging, production
     DEBUG: bool = False
-    
+
     # CORS Configuration
     BACKEND_CORS_ORIGINS: List[str] = []
 
@@ -43,6 +41,7 @@ class Settings(BaseSettings):
     def validate_postgres_server(cls, v: Any) -> str:
         # Railway provides POSTGRES_HOST, fallback to POSTGRES_SERVER
         import os
+
         railway_host = os.getenv("POSTGRES_HOST")
         if railway_host:
             return railway_host
@@ -55,6 +54,7 @@ class Settings(BaseSettings):
     def validate_postgres_port(cls, v: Any) -> int:
         # Railway provides POSTGRES_PORT
         import os
+
         railway_port = os.getenv("POSTGRES_PORT")
         if railway_port:
             return int(railway_port)
@@ -67,6 +67,7 @@ class Settings(BaseSettings):
     def validate_postgres_user(cls, v: Any) -> str:
         # Railway provides POSTGRES_USER
         import os
+
         railway_user = os.getenv("POSTGRES_USER")
         if railway_user:
             return railway_user
@@ -79,6 +80,7 @@ class Settings(BaseSettings):
     def validate_postgres_password(cls, v: Any) -> str:
         # Railway provides POSTGRES_PASSWORD
         import os
+
         railway_password = os.getenv("POSTGRES_PASSWORD")
         if railway_password:
             return railway_password
@@ -91,6 +93,7 @@ class Settings(BaseSettings):
     def validate_postgres_db(cls, v: Any) -> str:
         # Railway provides POSTGRES_DB, also try PGDATABASE
         import os
+
         railway_db = os.getenv("POSTGRES_DB") or os.getenv("PGDATABASE")
         if railway_db:
             return railway_db
@@ -103,13 +106,14 @@ class Settings(BaseSettings):
     def SQLALCHEMY_DATABASE_URI(self) -> str:
         # Check if Railway provides a DATABASE_URL (common pattern)
         import os
+
         database_url = os.getenv("DATABASE_URL")
         if database_url:
             # Railway sometimes provides postgres:// instead of postgresql://
             if database_url.startswith("postgres://"):
                 database_url = database_url.replace("postgres://", "postgresql://", 1)
             return database_url
-        
+
         # Fallback to individual components
         return f"postgresql://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}@{self.POSTGRES_SERVER}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}"
 
@@ -117,21 +121,21 @@ class Settings(BaseSettings):
     SECRET_KEY: str = "dev-secret-key-change-in-production"
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
-    
+
     # Rate Limiting
     REQUESTS_PER_MINUTE: int = 60
-    
+
     # Voting Configuration
     VOTES_PER_DAY: int = 3
     VOTE_WEIGHTS: List[float] = [1.0, 0.5, 0.25]
-    
+
     # Logging Configuration
     LOG_LEVEL: str = "INFO"
     LOG_FILE: str = "app.log"
-    
+
     # Health Check Configuration
     HEALTH_CHECK_TIMEOUT: int = 30
-    
+
     @field_validator("SECRET_KEY", mode="before")
     @classmethod
     def validate_secret_key(cls, v: str) -> str:
@@ -148,4 +152,5 @@ class Settings(BaseSettings):
             if self.SECRET_KEY == "dev-secret-key-change-in-production":
                 print("Warning: Using default SECRET_KEY in production!")
 
-settings = Settings() 
+
+settings = Settings()

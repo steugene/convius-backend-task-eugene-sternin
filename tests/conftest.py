@@ -18,10 +18,12 @@ from app.core.security import get_password_hash
 from app.crud.crud_user import user
 from app.schemas.user import UserCreate
 
+
 def run_migrations():
     """Run database migrations."""
     alembic_cfg = Config("alembic.ini")
     command.upgrade(alembic_cfg, "head")
+
 
 @pytest.fixture(scope="session")
 def event_loop() -> Generator:
@@ -30,6 +32,7 @@ def event_loop() -> Generator:
     yield loop
     loop.close()
 
+
 @pytest.fixture(scope="session")
 def engine():
     """Create a test database engine and run migrations."""
@@ -37,13 +40,14 @@ def engine():
     run_migrations()  # Run migrations to create tables
     yield engine
 
+
 @pytest.fixture(scope="function")
 def db(engine):
     """Create a fresh database session for each test."""
     connection = engine.connect()
     transaction = connection.begin()
     session = sessionmaker(bind=connection)()
-    
+
     try:
         yield session
     finally:
@@ -51,9 +55,11 @@ def db(engine):
         transaction.rollback()
         connection.close()
 
+
 @pytest.fixture(scope="function")
 def client(db) -> Generator:
     """Create a test client with a fresh database session."""
+
     def override_get_db():
         try:
             yield db
@@ -65,15 +71,15 @@ def client(db) -> Generator:
         yield test_client
     app.dependency_overrides.clear()
 
+
 @pytest.fixture(scope="function")
 def test_user(db) -> User:
     """Create a test user."""
     user_in = UserCreate(
-        email="test@example.com",
-        password="testpassword123",
-        full_name="Test User"
+        email="test@example.com", password="testpassword123", full_name="Test User"
     )
     return user.create(db, obj_in=user_in)
+
 
 @pytest.fixture(scope="function")
 def test_user_token(client: TestClient, test_user: User) -> str:
@@ -86,30 +92,28 @@ def test_user_token(client: TestClient, test_user: User) -> str:
     tokens = r.json()
     return tokens["access_token"]
 
+
 @pytest.fixture(scope="function")
 def authorized_client(client: TestClient, test_user_token: str) -> TestClient:
     """Create an authorized test client."""
-    client.headers = {
-        **client.headers,
-        "Authorization": f"Bearer {test_user_token}"
-    }
+    client.headers = {**client.headers, "Authorization": f"Bearer {test_user_token}"}
     return client
+
 
 @pytest.fixture(scope="function")
 def test_restaurant(db) -> Restaurant:
     """Create a test restaurant for testing."""
     restaurant = Restaurant(
-        name="Test Restaurant",
-        description="A test restaurant",
-        address="123 Test St"
+        name="Test Restaurant", description="A test restaurant", address="123 Test St"
     )
     db.add(restaurant)
     db.commit()
     db.refresh(restaurant)
     return restaurant
 
+
 @pytest.fixture(scope="function")
 def test_dates() -> tuple[date, date]:
     """Create test dates for voting."""
     today = date.today()
-    return today, today + timedelta(days=1) 
+    return today, today + timedelta(days=1)

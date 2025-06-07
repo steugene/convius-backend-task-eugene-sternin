@@ -10,6 +10,7 @@ from app.core.logging import get_logger
 router = APIRouter()
 logger = get_logger(__name__)
 
+
 @router.get("/health")
 def health_check() -> Dict[str, Any]:
     """
@@ -20,8 +21,9 @@ def health_check() -> Dict[str, Any]:
         "status": "healthy",
         "service": settings.PROJECT_NAME,
         "version": settings.VERSION,
-        "environment": settings.ENVIRONMENT
+        "environment": settings.ENVIRONMENT,
     }
+
 
 @router.get("/health/ready")
 def readiness_check(db: Session = Depends(get_db)) -> Dict[str, Any]:
@@ -39,19 +41,17 @@ def readiness_check(db: Session = Depends(get_db)) -> Dict[str, Any]:
         logger.error(f"Database connection failed: {e}")
         db_status = "unhealthy"
         raise HTTPException(
-            status_code=503,
-            detail="Service not ready - database connection failed"
+            status_code=503, detail="Service not ready - database connection failed"
         )
-    
+
     return {
         "status": "ready",
         "service": settings.PROJECT_NAME,
         "version": settings.VERSION,
         "environment": settings.ENVIRONMENT,
-        "checks": {
-            "database": db_status
-        }
+        "checks": {"database": db_status},
     }
+
 
 @router.get("/health/live")
 def liveness_check() -> Dict[str, Any]:
@@ -62,5 +62,5 @@ def liveness_check() -> Dict[str, Any]:
     return {
         "status": "alive",
         "service": settings.PROJECT_NAME,
-        "version": settings.VERSION
-    } 
+        "version": settings.VERSION,
+    }
