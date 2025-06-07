@@ -43,10 +43,10 @@ def custom_rate_limit_handler(request: Request, exc: Exception) -> JSONResponse:
 
     # Ensure it's actually a RateLimitExceeded exception
     if isinstance(exc, RateLimitExceeded):
-        detail = getattr(exc, 'detail', 'Unknown limit')
-        retry_after = getattr(exc, 'retry_after', None)
+        detail = getattr(exc, "detail", "Unknown limit")
+        retry_after = getattr(exc, "retry_after", None)
     else:
-        detail = 'Unknown limit'
+        detail = "Unknown limit"
         retry_after = None
 
     return JSONResponse(
