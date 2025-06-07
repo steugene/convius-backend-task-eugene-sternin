@@ -1,12 +1,12 @@
 import secrets
 from typing import Any, List, Optional, Union
 
-from pydantic import ConfigDict, computed_field, field_validator
-from pydantic_settings import BaseSettings
+from pydantic import computed_field, field_validator
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
-    model_config = ConfigDict(
+    model_config = SettingsConfigDict(
         env_file=".env", env_ignore_empty=True, extra="ignore", case_sensitive=True
     )
 
@@ -102,7 +102,7 @@ class Settings(BaseSettings):
             return "lunch_voting"
         return str(v)
 
-    @computed_field
+    @computed_field  # type: ignore[prop-decorator]
     @property
     def SQLALCHEMY_DATABASE_URI(self) -> str:
         # Check if Railway provides a DATABASE_URL (common pattern)

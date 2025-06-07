@@ -58,15 +58,15 @@ class Restaurant(Base):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self._total_votes = 0.0
-        self._distinct_voters = 0
+        self._total_votes: float = 0.0
+        self._distinct_voters: int = 0
 
     @property
     def total_votes(self) -> float:
         return self._total_votes
 
     @total_votes.setter
-    def total_votes(self, value: float):
+    def total_votes(self, value: float) -> None:
         self._total_votes = float(value)
 
     @property
@@ -74,7 +74,7 @@ class Restaurant(Base):
         return self._distinct_voters
 
     @distinct_voters.setter
-    def distinct_voters(self, value: int):
+    def distinct_voters(self, value: int) -> None:
         self._distinct_voters = int(value)
 
 

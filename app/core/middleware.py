@@ -17,7 +17,7 @@ class ErrorHandlerMiddleware(BaseHTTPMiddleware):
 
     async def dispatch(self, request: Request, call_next: Callable) -> Response:
         try:
-            response = await call_next(request)
+            response: Response = await call_next(request)
             return response
         except HTTPException as exc:
             # Let FastAPI handle HTTP exceptions
@@ -79,7 +79,7 @@ class RequestTrackingMiddleware(BaseHTTPMiddleware):
         )
 
         # Process request
-        response = await call_next(request)
+        response: Response = await call_next(request)
 
         # Calculate duration
         duration = time.time() - start_time
@@ -106,7 +106,7 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
     """Add security headers to all responses."""
 
     async def dispatch(self, request: Request, call_next: Callable) -> Response:
-        response = await call_next(request)
+        response: Response = await call_next(request)
 
         # Add security headers
         response.headers["X-Content-Type-Options"] = "nosniff"

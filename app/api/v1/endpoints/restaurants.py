@@ -121,7 +121,7 @@ def vote_for_restaurant(
     # Create vote with weight calculation
     vote_in = VoteCreate(restaurant_id=id)
     try:
-        crud.vote.create_with_weight(db, obj_in=vote_in, user_id=current_user.id)
+        crud.vote.create_with_weight(db, obj_in=vote_in, user_id=int(current_user.id))
         db.commit()
     except ValueError as e:
         db.rollback()

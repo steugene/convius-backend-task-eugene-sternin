@@ -1,4 +1,5 @@
-from fastapi import HTTPException, Request
+from fastapi import Request
+from fastapi.responses import JSONResponse
 from slowapi import Limiter
 from slowapi.errors import RateLimitExceeded
 from slowapi.util import get_remote_address
@@ -29,7 +30,7 @@ limiter = Limiter(
 
 
 # Custom rate limit exceeded handler
-def custom_rate_limit_handler(request: Request, exc: RateLimitExceeded):
+def custom_rate_limit_handler(request: Request, exc: Exception) -> JSONResponse:
     """Custom handler for rate limit exceeded."""
     logger.warning(
         f"Rate limit exceeded for client: {get_client_id(request)}",
@@ -40,12 +41,20 @@ def custom_rate_limit_handler(request: Request, exc: RateLimitExceeded):
         },
     )
 
-    return HTTPException(
+    # Ensure it's actually a RateLimitExceeded exception
+    if isinstance(exc, RateLimitExceeded):
+        detail = getattr(exc, 'detail', 'Unknown limit')
+        retry_after = getattr(exc, 'retry_after', None)
+    else:
+        detail = 'Unknown limit'
+        retry_after = None
+
+    return JSONResponse(
         status_code=429,
-        detail={
+        content={
             "error": "Rate limit exceeded",
-            "message": f"Too many requests. Limit: {exc.detail}",
-            "retry_after": exc.retry_after,
+            "message": f"Too many requests. Limit: {detail}",
+            "retry_after": retry_after,
         },
     )
 

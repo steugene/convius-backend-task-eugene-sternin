@@ -41,12 +41,12 @@ class CRUDUser(CRUDBase[User, UserCreate, UserUpdate]):
         user = self.get_by_email(db, email=email)
         if not user:
             return None
-        if not verify_password(password, user.hashed_password):
+        if not verify_password(password, str(user.hashed_password)):
             return None
         return user
 
     def is_active(self, user: User) -> bool:
-        return user.is_active
+        return bool(user.is_active)
 
 
 user = CRUDUser(User)
