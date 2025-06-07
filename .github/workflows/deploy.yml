@@ -69,7 +69,7 @@ jobs:
         echo "Setting up Railway authentication..."
         
         echo "Linking to project..."
-        railway link ${{ vars.RAILWAY_PROJECT_ID }}
+        railway link --project ${{ vars.RAILWAY_PROJECT_ID }}
         
         echo "Deploying to Railway..."
         railway up --detach
