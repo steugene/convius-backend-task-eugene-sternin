@@ -68,7 +68,15 @@ jobs:
       env:
         RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
         RAILWAY_PROJECT_ID: ${{ vars.RAILWAY_PROJECT_ID }}
+        RAILWAY_ENVIRONMENT: production
       run: |
+        echo "Debugging Railway CLI..."
+        railway whoami
+        
+        echo "Connecting to project ${{ vars.RAILWAY_PROJECT_ID }}..."
+        railway connect ${{ vars.RAILWAY_PROJECT_ID }} || echo "Connect failed, trying direct deployment..."
+        
+        echo "Deploying to Railway..."
         railway up --detach
 
     - name: 🏥 Health Check
