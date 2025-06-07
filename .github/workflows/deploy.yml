@@ -65,13 +65,16 @@ jobs:
         echo "$HOME/.railway/bin" >> $GITHUB_PATH
 
     - name: 🚀 Deploy to Railway
-      env:
-        RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
       run: |
         echo "Setting up Railway authentication..."
         
+        echo "Linking to project..."
+        railway link ${{ vars.RAILWAY_PROJECT_ID }}
+        
         echo "Deploying to Railway..."
         railway up --detach
+      env:
+        RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
 
     - name: 🏥 Health Check
       run: |
