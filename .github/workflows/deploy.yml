@@ -69,6 +69,7 @@ jobs:
 
     - name: 🏥 Health Check
       run: |
+        apk add --no-cache curl
         sleep 30
         curl -f ${{ vars.RAILWAY_URL }}/health || exit 1
 
