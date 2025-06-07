@@ -53,24 +53,15 @@ jobs:
   deploy:
     needs: test
     runs-on: ubuntu-latest
+    container: ghcr.io/railwayapp/cli:latest
     if: github.ref == 'refs/heads/main'
 
     steps:
     - name: 📥 Checkout code
       uses: actions/checkout@v4
 
-    - name: 🚂 Install Railway CLI
-      run: |
-        curl -fsSL https://railway.app/install.sh | sh
-        echo "$HOME/.railway/bin" >> $GITHUB_PATH
-
     - name: 🚀 Deploy to Railway
       run: |
-        echo "Setting up Railway authentication..."
-        
-        echo "Linking to project..."
-        railway link ${{ vars.RAILWAY_PROJECT_ID }}
-        
         echo "Deploying to Railway..."
         railway up --detach
       env:
