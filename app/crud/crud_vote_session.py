@@ -22,6 +22,8 @@ class CRUDVoteSession(CRUDBase[VoteSession, VoteSessionCreate, VoteSessionUpdate
         db_obj = VoteSession(
             title=obj_in.title,
             description=obj_in.description,
+            votes_per_user=obj_in.votes_per_user,
+            auto_close_at=obj_in.auto_close_at,
             created_by_user_id=created_by_user_id,
             status=VoteSessionStatus.DRAFT,
         )
@@ -151,41 +153,75 @@ class CRUDVoteSession(CRUDBase[VoteSession, VoteSessionCreate, VoteSessionUpdate
         if not session:
             return None
 
-        # Calculate results
+        # Calculate results using weighted votes
         results = (
             db.query(
                 Restaurant.id,
                 Restaurant.name,
-                func.count(VoteParticipation.id).label("vote_count"),
+                func.sum(VoteParticipation.weight).label("weighted_votes"),
+                func.count(func.distinct(VoteParticipation.user_id)).label(
+                    "distinct_voters"
+                ),
             )
             .select_from(Restaurant)
             .join(VoteParticipation, Restaurant.id == VoteParticipation.restaurant_id)
             .filter(VoteParticipation.vote_session_id == session_id)
             .group_by(Restaurant.id, Restaurant.name)
-            .order_by(func.count(VoteParticipation.id).desc())
+            .order_by(
+                func.sum(VoteParticipation.weight).desc(),
+                func.count(func.distinct(VoteParticipation.user_id)).desc(),
+            )
             .all()
         )
 
-        # Calculate total votes
+        # Calculate total weighted votes
         total_votes = (
-            db.query(func.count(VoteParticipation.id))
+            db.query(func.sum(VoteParticipation.weight))
             .filter(VoteParticipation.vote_session_id == session_id)
             .scalar()
             or 0
         )
 
         # Set computed properties
-        session.total_votes = total_votes
+        session.total_votes = float(total_votes)
         session.results = [
             {
                 "restaurant_id": result.id,
                 "restaurant_name": result.name,
-                "vote_count": result.vote_count,
+                "weighted_votes": float(result.weighted_votes or 0),
+                "distinct_voters": result.distinct_voters,
             }
             for result in results
         ]
 
         return session
+
+    def check_and_auto_close_sessions(self, db: Session) -> int:
+        """Check for sessions that should be auto-closed and close them"""
+        now = datetime.now(timezone.utc)
+
+        # Find active sessions that have passed their auto_close_at time
+        sessions_to_close = (
+            db.query(VoteSession)
+            .filter(
+                VoteSession.status == VoteSessionStatus.ACTIVE,
+                VoteSession.auto_close_at.isnot(None),
+                VoteSession.auto_close_at <= now,
+            )
+            .all()
+        )
+
+        closed_count = 0
+        for session in sessions_to_close:
+            session.status = VoteSessionStatus.CLOSED
+            session.ended_at = now
+            db.add(session)
+            closed_count += 1
+
+        if closed_count > 0:
+            db.flush()
+
+        return closed_count
 
 
 vote_session = CRUDVoteSession(VoteSession)

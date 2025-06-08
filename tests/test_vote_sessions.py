@@ -133,8 +133,8 @@ def test_vote_in_session(
     assert content["vote_session_id"] == session_id
 
 
-def test_change_vote_in_session(authorized_client: TestClient, db: Session) -> None:
-    """Test changing vote in a session"""
+def test_multiple_votes_in_session(authorized_client: TestClient, db: Session) -> None:
+    """Test casting multiple weighted votes in a session"""
     # Create two restaurants
     restaurant1 = Restaurant(name="Restaurant 1", description="First restaurant")
     restaurant2 = Restaurant(name="Restaurant 2", description="Second restaurant")
@@ -147,8 +147,8 @@ def test_change_vote_in_session(authorized_client: TestClient, db: Session) -> N
     restaurant1_id = restaurant1.id
     restaurant2_id = restaurant2.id
 
-    # Create and setup session
-    session_data = {"title": "Test Session", "description": "Test"}
+    # Create session with 3 votes per user
+    session_data = {"title": "Test Session", "description": "Test", "votes_per_user": 3}
     response = authorized_client.post(
         f"{settings.API_V1_STR}/vote-sessions/", json=session_data
     )
@@ -161,21 +161,43 @@ def test_change_vote_in_session(authorized_client: TestClient, db: Session) -> N
     )
     authorized_client.post(f"{settings.API_V1_STR}/vote-sessions/{session_id}/start")
 
-    # First vote
+    # First vote (weight = 1.0)
     vote_data = {"restaurant_id": restaurant1_id}
     response = authorized_client.post(
         f"{settings.API_V1_STR}/vote-sessions/{session_id}/vote", json=vote_data
     )
     assert response.status_code == 200
     assert response.json()["restaurant_id"] == restaurant1_id
+    assert response.json()["weight"] == 1.0
+    assert response.json()["vote_sequence"] == 1
 
-    # Change vote
+    # Second vote (weight = 0.5)
     vote_data = {"restaurant_id": restaurant2_id}
     response = authorized_client.post(
         f"{settings.API_V1_STR}/vote-sessions/{session_id}/vote", json=vote_data
     )
     assert response.status_code == 200
     assert response.json()["restaurant_id"] == restaurant2_id
+    assert response.json()["weight"] == 0.5
+    assert response.json()["vote_sequence"] == 2
+
+    # Third vote (weight = 0.25)
+    vote_data = {"restaurant_id": restaurant1_id}
+    response = authorized_client.post(
+        f"{settings.API_V1_STR}/vote-sessions/{session_id}/vote", json=vote_data
+    )
+    assert response.status_code == 200
+    assert response.json()["restaurant_id"] == restaurant1_id
+    assert response.json()["weight"] == 0.25
+    assert response.json()["vote_sequence"] == 3
+
+    # Fourth vote should fail (limit reached)
+    vote_data = {"restaurant_id": restaurant2_id}
+    response = authorized_client.post(
+        f"{settings.API_V1_STR}/vote-sessions/{session_id}/vote", json=vote_data
+    )
+    assert response.status_code == 400
+    assert "already cast 3 votes" in response.json()["detail"]
 
 
 def test_get_session_results(
@@ -209,10 +231,11 @@ def test_get_session_results(
     )
     assert response.status_code == 200
     content = response.json()
-    assert content["total_votes"] == 1
+    assert content["total_votes"] == 1.0
     assert len(content["results"]) == 1
     assert content["results"][0]["restaurant_id"] == restaurant_id
-    assert content["results"][0]["vote_count"] == 1
+    assert content["results"][0]["weighted_votes"] == 1.0
+    assert content["results"][0]["distinct_voters"] == 1
 
 
 def test_end_vote_session(
@@ -396,3 +419,119 @@ def test_get_active_sessions(
     assert len(content) >= 1
     assert any(session["title"] == "Active Session" for session in content)
     assert not any(session["title"] == "Draft Session" for session in content)
+
+
+def test_weighted_voting_results(authorized_client: TestClient, db: Session) -> None:
+    """Test that weighted voting calculates results correctly"""
+    # Create two restaurants
+    restaurant1 = Restaurant(name="Restaurant 1", description="First restaurant")
+    restaurant2 = Restaurant(name="Restaurant 2", description="Second restaurant")
+    db.add_all([restaurant1, restaurant2])
+    db.commit()
+    db.refresh(restaurant1)
+    db.refresh(restaurant2)
+
+    restaurant1_id = restaurant1.id
+    restaurant2_id = restaurant2.id
+
+    # Create session with 3 votes per user
+    session_data = {
+        "title": "Weighted Test",
+        "description": "Test",
+        "votes_per_user": 3,
+    }
+    response = authorized_client.post(
+        f"{settings.API_V1_STR}/vote-sessions/", json=session_data
+    )
+    session_id = response.json()["id"]
+
+    # Add restaurants and start session
+    authorized_client.post(
+        f"{settings.API_V1_STR}/vote-sessions/{session_id}/restaurants",
+        json=[restaurant1_id, restaurant2_id],
+    )
+    authorized_client.post(f"{settings.API_V1_STR}/vote-sessions/{session_id}/start")
+
+    # Vote for restaurant1: 1.0 + 0.25 = 1.25 total weight
+    authorized_client.post(
+        f"{settings.API_V1_STR}/vote-sessions/{session_id}/vote",
+        json={"restaurant_id": restaurant1_id},
+    )
+    authorized_client.post(
+        f"{settings.API_V1_STR}/vote-sessions/{session_id}/vote",
+        json={"restaurant_id": restaurant2_id},
+    )  # 0.5 weight
+    authorized_client.post(
+        f"{settings.API_V1_STR}/vote-sessions/{session_id}/vote",
+        json={"restaurant_id": restaurant1_id},
+    )  # 0.25 weight
+
+    # Get results
+    response = authorized_client.get(
+        f"{settings.API_V1_STR}/vote-sessions/{session_id}"
+    )
+    content = response.json()
+
+    # Total should be 1.0 + 0.5 + 0.25 = 1.75
+    assert content["total_votes"] == 1.75
+    assert len(content["results"]) == 2
+
+    # Restaurant 1 should win with 1.25 weight (1.0 + 0.25)
+    restaurant1_result = next(
+        r for r in content["results"] if r["restaurant_id"] == restaurant1_id
+    )
+    restaurant2_result = next(
+        r for r in content["results"] if r["restaurant_id"] == restaurant2_id
+    )
+
+    assert restaurant1_result["weighted_votes"] == 1.25
+    assert restaurant1_result["distinct_voters"] == 1
+    assert restaurant2_result["weighted_votes"] == 0.5
+    assert restaurant2_result["distinct_voters"] == 1
+
+
+def test_auto_close_functionality(authorized_client: TestClient, db: Session) -> None:
+    """Test auto-close functionality"""
+    from datetime import datetime, timedelta, timezone
+
+    # Create restaurant
+    restaurant = Restaurant(name="Test Restaurant", description="Test")
+    db.add(restaurant)
+    db.commit()
+    db.refresh(restaurant)
+    restaurant_id = restaurant.id
+
+    # Create session that auto-closes in the past (should be closed immediately)
+    past_time = datetime.now(timezone.utc) - timedelta(minutes=1)
+    session_data = {
+        "title": "Auto Close Test",
+        "description": "Test",
+        "auto_close_at": past_time.isoformat(),
+    }
+    response = authorized_client.post(
+        f"{settings.API_V1_STR}/vote-sessions/", json=session_data
+    )
+    session_id = response.json()["id"]
+
+    # Add restaurant and start session
+    authorized_client.post(
+        f"{settings.API_V1_STR}/vote-sessions/{session_id}/restaurants",
+        json=[restaurant_id],
+    )
+    authorized_client.post(f"{settings.API_V1_STR}/vote-sessions/{session_id}/start")
+
+    # Try to vote - this should trigger auto-close check and close the session
+    vote_data = {"restaurant_id": restaurant_id}
+    response = authorized_client.post(
+        f"{settings.API_V1_STR}/vote-sessions/{session_id}/vote", json=vote_data
+    )
+
+    # Should fail because session was auto-closed
+    assert response.status_code == 400
+    assert "inactive session" in response.json()["detail"]
+
+    # Verify session is closed
+    response = authorized_client.get(
+        f"{settings.API_V1_STR}/vote-sessions/{session_id}"
+    )
+    assert response.json()["status"] == "closed"

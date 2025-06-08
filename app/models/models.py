@@ -141,6 +141,8 @@ class VoteSession(Base):
     created_by_user_id: Mapped[int] = mapped_column(
         Integer, ForeignKey("user.id"), nullable=False
     )
+    votes_per_user: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
+    auto_close_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
     created_at = Column(
         DateTime, nullable=False, default=lambda: datetime.now(timezone.utc)
     )
@@ -162,16 +164,16 @@ class VoteSession(Base):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self._total_votes: int = 0
+        self._total_votes: float = 0.0
         self._results: list = []
 
     @property
-    def total_votes(self) -> int:
+    def total_votes(self) -> float:
         return self._total_votes
 
     @total_votes.setter
-    def total_votes(self, value: int) -> None:
-        self._total_votes = int(value)
+    def total_votes(self, value: float) -> None:
+        self._total_votes = float(value)
 
     @property
     def results(self) -> list:
@@ -193,6 +195,8 @@ class VoteParticipation(Base):
     restaurant_id: Mapped[int] = mapped_column(
         Integer, ForeignKey("restaurant.id"), nullable=False
     )
+    vote_sequence: Mapped[int] = mapped_column(Integer, nullable=False)
+    weight: Mapped[float] = mapped_column(Float, nullable=False)
     voted_at = Column(
         DateTime, nullable=False, default=lambda: datetime.now(timezone.utc)
     )
@@ -202,9 +206,12 @@ class VoteParticipation(Base):
     user = relationship("User")
     restaurant = relationship("Restaurant")
 
-    # Unique constraint: one vote per user per session
+    # Unique constraint: one vote per user per session per sequence
     __table_args__ = (
         UniqueConstraint(
-            "vote_session_id", "user_id", name="unique_user_vote_per_session"
+            "vote_session_id",
+            "user_id",
+            "vote_sequence",
+            name="unique_user_vote_sequence_per_session",
         ),
     )

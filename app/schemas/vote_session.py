@@ -10,6 +10,8 @@ from app.models.models import VoteSessionStatus
 class VoteSessionBase(BaseModel):
     title: str
     description: Optional[str] = None
+    votes_per_user: int = 1
+    auto_close_at: Optional[datetime] = None
 
 
 # Properties to receive on item creation
@@ -52,7 +54,7 @@ class VoteSessionWithRestaurants(VoteSession):
 
 # Properties to return with full details and results
 class VoteSessionWithResults(VoteSessionWithRestaurants):
-    total_votes: int = 0
+    total_votes: float = 0.0
     results: List[dict] = []
 
     class Config:
@@ -72,6 +74,8 @@ class VoteParticipationInDBBase(VoteParticipationBase):
     id: int
     vote_session_id: int
     user_id: int
+    vote_sequence: int
+    weight: float
     voted_at: datetime
 
     class Config:
