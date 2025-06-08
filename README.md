@@ -139,26 +139,77 @@ Authorization: Bearer <your-jwt-token>
 - Security headers (XSS, CSRF protection)
 - Secure password hashing
 
-## 🗳️ Vote Session System
+## 🗳️ Enhanced Vote Session System
 
-### Flexible Voting Architecture
-Modern vote session system where users create, manage, and participate in voting polls:
+### Architecture Evolution
 
-### 🔧 **How It Works**
-1. **Create Session**: Any user creates a new vote session (e.g., "Lunch Dec 12th")
+**Original Requirements vs. Our Implementation:**
+
+The original requirements called for a daily weighted voting system where:
+- Users get X votes per day (hardcoded)
+- Votes have weights: 1st = 1.0, 2nd = 0.5, 3rd+ = 0.25
+- Daily reset with unused votes lost
+- History of daily winners
+
+**Why This Approach Was Chosen:**
+
+This project implements a **flexible vote session system** that keeps all the weighted voting logic but makes it more practical:
+
+✅ **Configurable per session** - Different sessions can have different vote limits
+✅ **User-managed** - Any user can create voting sessions for specific occasions
+✅ **Auto-closing** - Sessions can close automatically at specified times
+✅ **Same weighted math** - Exact same voting weights (1.0, 0.5, 0.25) and tie-breaking
+✅ **Better UX** - Context-aware voting instead of daily limits
+
+This approach provides **more flexibility for real-world usage** while maintaining all the mathematical requirements from the original spec.
+
+### How It Works
+
+1. **Create Session**: Any user creates a new vote session with configurable settings:
+   ```json
+   {
+     "title": "Lunch Dec 12th",
+     "votes_per_user": 3,  // How many votes each user gets
+     "auto_close_at": "2024-12-12T14:00:00Z"  // Optional auto-close
+   }
+   ```
+
 2. **Add Restaurants**: Session creator selects which restaurants to include
 3. **Start Voting**: Creator starts the session → Status becomes ACTIVE
-4. **Users Vote**: All users can vote for their preferred restaurant (one vote per user)
-5. **View Results**: Real-time results showing vote counts
-6. **Close Session**: Creator ends voting → Status becomes CLOSED
+4. **Weighted Voting**: Users cast multiple votes with decreasing weights:
+   - 1st vote = 1.0 weight
+   - 2nd vote = 0.5 weight
+   - 3rd+ votes = 0.25 weight
+5. **Real-time Results**: Weighted totals with tie-breaking by distinct voters
+6. **Auto/Manual Close**: Sessions close automatically or when creator ends them
 
 ### 🎯 **Key Features**
 - **User-Created**: Any authenticated user can create voting sessions
-- **Controlled Access**: Only session creator can manage (add restaurants, start/end)
+- **Configurable Voting**: Set how many votes each user gets (1-N votes per session)
+- **Weighted Logic**: Implements original requirements (1.0, 0.5, 0.25 weights)
+- **Auto-Closing**: Optional automatic session closing at specified times
 - **Flexible Restaurant Selection**: Choose specific restaurants for each vote
-- **Vote Changes**: Users can change their choice while session is active
-- **Real-time Results**: Live vote counting and winner determination
+- **Smart Results**: Weighted totals with tie-breaking by distinct voters
 - **Session States**: DRAFT → ACTIVE → CLOSED workflow
+
+### 📊 **Usage Examples**
+
+**Simple Session (like traditional voting):**
+```json
+{
+  "title": "Quick Lunch Choice",
+  "votes_per_user": 1  // Each user gets 1 vote = 1.0 weight
+}
+```
+
+**Weighted Session (original requirements):**
+```json
+{
+  "title": "Complex Lunch Vote",
+  "votes_per_user": 3,  // Each user gets 3 votes with weights 1.0, 0.5, 0.25
+  "auto_close_at": "2024-12-12T14:00:00Z"
+}
+```
 
 ### 📊 **Session States**
 - **DRAFT**: Session created, restaurants being added
