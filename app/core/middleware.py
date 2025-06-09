@@ -23,7 +23,6 @@ class ErrorHandlerMiddleware(BaseHTTPMiddleware):
             # Let FastAPI handle HTTP exceptions
             raise exc
         except Exception as exc:
-            # Log unexpected errors
             logger.error(
                 f"Unexpected error: {exc}",
                 extra={
@@ -57,13 +56,11 @@ class RequestTrackingMiddleware(BaseHTTPMiddleware):
     """Request tracking and logging middleware."""
 
     async def dispatch(self, request: Request, call_next: Callable) -> Response:
-        # Generate request ID
         request_id = str(uuid.uuid4())
         request.state.request_id = request_id
 
         start_time = time.time()
 
-        # Log request
         logger.info(
             f"Request started: {request.method} {request.url.path}",
             extra={
@@ -76,12 +73,10 @@ class RequestTrackingMiddleware(BaseHTTPMiddleware):
             },
         )
 
-        # Process request
         response: Response = await call_next(request)
 
         duration = time.time() - start_time
 
-        # Log response
         logger.info(
             f"Request completed: {request.method} {request.url.path}",
             extra={

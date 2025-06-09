@@ -1,4 +1,4 @@
-from typing import Any, List
+from typing import List
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
@@ -30,7 +30,7 @@ def read_vote_sessions(
         default=100, ge=1, le=1000, description="Number of records to return"
     ),
     current_user: models.User = Depends(deps.get_current_active_user),
-) -> Any:
+) -> List[models.VoteSession]:
     """
     Retrieve all vote sessions.
     """
@@ -44,7 +44,7 @@ def read_active_vote_sessions(
     skip: int = 0,
     limit: int = 100,
     current_user: models.User = Depends(deps.get_current_active_user),
-) -> Any:
+) -> List[models.VoteSession]:
     """
     Retrieve active vote sessions.
     """
@@ -58,7 +58,7 @@ def read_my_vote_sessions(
     skip: int = 0,
     limit: int = 100,
     current_user: models.User = Depends(deps.get_current_active_user),
-) -> Any:
+) -> List[models.VoteSession]:
     """
     Retrieve vote sessions created by current user.
     """
@@ -74,7 +74,7 @@ def create_vote_session(
     db: Session = Depends(deps.get_db),
     session_in: VoteSessionCreate,
     current_user: models.User = Depends(deps.get_current_active_user),
-) -> Any:
+) -> models.VoteSession:
     """
     Create new vote session.
     """
@@ -97,7 +97,7 @@ def read_vote_session(
     db: Session = Depends(deps.get_db),
     session_id: int,
     current_user: models.User = Depends(deps.get_current_active_user),
-) -> Any:
+) -> models.VoteSession:
     """
     Get vote session by ID with results.
     """
@@ -114,7 +114,7 @@ def update_vote_session(
     session_id: int,
     session_in: VoteSessionUpdate,
     current_user: models.User = Depends(deps.get_current_active_user),
-) -> Any:
+) -> models.VoteSession:
     """
     Update a vote session (only by creator).
     """
@@ -144,7 +144,7 @@ def add_restaurants_to_session(
     session_id: int,
     restaurant_ids: List[int],
     current_user: models.User = Depends(deps.get_current_active_user),
-) -> Any:
+) -> models.VoteSession:
     """
     Add restaurants to a vote session (only by creator).
     """
@@ -168,7 +168,7 @@ def remove_restaurants_from_session(
     session_id: int,
     restaurant_ids: List[int],
     current_user: models.User = Depends(deps.get_current_active_user),
-) -> Any:
+) -> models.VoteSession:
     """
     Remove restaurants from a vote session (only by creator).
     """
@@ -191,7 +191,7 @@ def start_vote_session(
     db: Session = Depends(deps.get_db),
     session_id: int,
     current_user: models.User = Depends(deps.get_current_active_user),
-) -> Any:
+) -> models.VoteSession:
     """
     Start a vote session (only by creator).
     """
@@ -211,7 +211,7 @@ def end_vote_session(
     db: Session = Depends(deps.get_db),
     session_id: int,
     current_user: models.User = Depends(deps.get_current_active_user),
-) -> Any:
+) -> models.VoteSession:
     """
     End a vote session (only by creator) and return with winning restaurant.
     """
@@ -232,7 +232,7 @@ def vote_in_session(
     session_id: int,
     vote_in: VoteParticipationCreate,
     current_user: models.User = Depends(deps.get_current_active_user),
-) -> Any:
+) -> models.VoteParticipation:
     """
     Vote in a session.
     """
@@ -255,7 +255,7 @@ def get_my_vote_in_session(
     db: Session = Depends(deps.get_db),
     session_id: int,
     current_user: models.User = Depends(deps.get_current_active_user),
-) -> Any:
+) -> models.VoteParticipation:
     """
     Get current user's vote in a session.
     """
@@ -275,7 +275,7 @@ def get_session_votes(
     skip: int = 0,
     limit: int = 100,
     current_user: models.User = Depends(deps.get_current_active_user),
-) -> Any:
+) -> List[models.VoteParticipation]:
     """
     Get all votes for a session.
     """

@@ -129,10 +129,6 @@ class Settings(BaseSettings):
     # Rate Limiting
     REQUESTS_PER_MINUTE: int = 60
 
-    # Voting Configuration
-    VOTING_DEADLINE_HOUR: int = 14  # Voting closes at 14:00 (2 PM)
-    VOTING_DEADLINE_MINUTE: int = 0
-
     # Logging Configuration
     LOG_LEVEL: str = "INFO"
     LOG_FILE: str = "app.log"

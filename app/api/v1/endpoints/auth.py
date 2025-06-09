@@ -1,10 +1,11 @@
 from datetime import timedelta
-from typing import Any
+from typing import Dict
 
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 
+from app import models
 from app.api.deps import get_db
 from app.core.config import settings
 from app.core.security import create_access_token
@@ -18,7 +19,7 @@ router = APIRouter()
 @router.post("/login", response_model=Token)
 def login_access_token(
     db: Session = Depends(get_db), form_data: OAuth2PasswordRequestForm = Depends()
-) -> Any:
+) -> Dict[str, str]:
     """
     OAuth2 compatible token login, get an access token for future requests
     """
@@ -43,7 +44,7 @@ def register_user(
     *,
     db: Session = Depends(get_db),
     user_in: UserCreate,
-) -> Any:
+) -> models.User:
     """
     Register new user.
     """

@@ -104,7 +104,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## 🔗 Links
 
-- [Repository](https://github.com/yourusername/lunch-voting-api)
-- [Documentation](https://github.com/yourusername/lunch-voting-api/blob/main/README.md)
-- [Issues](https://github.com/yourusername/lunch-voting-api/issues)
-- [Releases](https://github.com/yourusername/lunch-voting-api/releases)
+- [Repository](https://github.com/steugene/convius-backend-task-eugene-sternin)
+- [Documentation](https://github.com/steugene/convius-backend-task-eugene-sternin/blob/main/README.md)
+- [Issues](https://github.com/steugene/convius-backend-task-eugene-sternini/issues)
+- [Releases](https://github.com/steugene/convius-backend-task-eugene-sternin/releases)

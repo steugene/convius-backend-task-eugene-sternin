@@ -6,31 +6,21 @@ from sqlalchemy import engine_from_config, pool
 
 from alembic import context
 
-# Add the parent directory to Python path so we can import app
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-# Import all models so they are registered with Base.metadata
-import app.models.models  # This registers all models with Base.metadata
+import app.models.models
 from app.core.config import settings
 from app.db.session import Base
 
-# this is the Alembic Config object, which provides
-# access to the values within the .ini file in use.
 config = context.config
 
-# Interpret the config file for Python logging.
-# This line sets up loggers basically.
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
-# add your model's MetaData object here
-# for 'autogenerate' support
 target_metadata = Base.metadata
 
-# Set the database URL from settings
 def get_database_url() -> str:
     """Get database URL with proper handling for Railway environment variables."""
-    # Use Railway-style environment variables if available
     postgres_host = os.getenv("POSTGRES_HOST") or settings.POSTGRES_SERVER
     postgres_port = os.getenv("POSTGRES_PORT") or settings.POSTGRES_PORT
     postgres_user = os.getenv("POSTGRES_USER") or settings.POSTGRES_USER

@@ -26,8 +26,8 @@ Thank you for your interest in contributing to the Lunch Voting API! This docume
 1. Fork the repository on GitHub
 2. Clone your fork locally:
    ```bash
-   git clone https://github.com/your-username/lunch-voting-api.git
-   cd lunch-voting-api
+   git clone https://github.com/steugene/convius-backend-task-eugene-sternin.git
+   cd convius-backend-task-eugene-sternin
    ```
 
 ## 🛠️ Development Setup
@@ -312,7 +312,7 @@ make docker-build
 - **General questions**: Use GitHub Discussions
 - **Bug reports**: Create an issue
 - **Feature requests**: Create an issue
-- **Security issues**: Email security@yourproject.com
+- **Security issues**: Email eu.steinberg@gmail.com
 
 ## 🙏 Recognition
 

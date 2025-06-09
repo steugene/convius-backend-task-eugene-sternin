@@ -1,4 +1,4 @@
-from typing import Any, List
+from typing import List
 
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
@@ -21,7 +21,7 @@ def read_restaurants(
     skip: int = 0,
     limit: int = 100,
     current_user: models.User = Depends(deps.get_current_active_user),
-) -> Any:
+) -> List[models.Restaurant]:
     """
     Retrieve restaurants.
     """
@@ -35,14 +35,14 @@ def read_all_restaurants(
     skip: int = 0,
     limit: int = 100,
     current_user: models.User = Depends(deps.get_current_active_user),
-) -> Any:
+) -> List[models.Restaurant]:
     """
     Retrieve all restaurants including inactive ones (for admin purposes).
     """
     # Use base CRUD method that doesn't filter by is_active
     restaurants = crud.restaurant.get_multi(db, skip=skip, limit=limit)
 
-    # Set default vote counts since we're using session-based voting now
+    # Set default vote counts
     for restaurant in restaurants:
         restaurant.total_votes = 0.0
         restaurant.distinct_voters = 0
@@ -58,7 +58,7 @@ def create_restaurant(
     db: Session = Depends(deps.get_db),
     restaurant_in: RestaurantCreate,
     current_user: models.User = Depends(deps.get_current_active_user),
-) -> Any:
+) -> models.Restaurant:
     """
     Create new restaurant.
     """
@@ -78,14 +78,14 @@ def read_restaurant(
     db: Session = Depends(deps.get_db),
     id: int,
     current_user: models.User = Depends(deps.get_current_active_user),
-) -> Any:
+) -> models.Restaurant:
     """
     Get restaurant by ID.
     """
     restaurant = crud.restaurant.get_with_votes(db, restaurant_id=id)
     if not restaurant:
         raise HTTPException(status_code=404, detail="Restaurant not found")
-    return restaurant[0] if restaurant else None
+    return restaurant[0]
 
 
 @router.put("/{id}", response_model=Restaurant)
@@ -95,7 +95,7 @@ def update_restaurant(
     id: int,
     restaurant_in: RestaurantUpdate,
     current_user: models.User = Depends(deps.get_current_active_user),
-) -> Any:
+) -> models.Restaurant:
     """
     Update a restaurant.
     """
@@ -112,7 +112,7 @@ def delete_restaurant(
     db: Session = Depends(deps.get_db),
     id: int,
     current_user: models.User = Depends(deps.get_current_active_user),
-) -> Any:
+) -> models.Restaurant:
     """
     Soft delete a restaurant (sets is_active to False).
     Cannot delete restaurants that are in active vote sessions.
@@ -133,7 +133,7 @@ def reactivate_restaurant(
     db: Session = Depends(deps.get_db),
     id: int,
     current_user: models.User = Depends(deps.get_current_active_user),
-) -> Any:
+) -> models.Restaurant:
     """
     Reactivate a soft-deleted restaurant.
     """

@@ -17,7 +17,7 @@ Instead, please report them responsibly by:
 
 ### 📧 Email
 
-Send an email to: **security@yourproject.com**
+Send an email to: **eu.steinberg@gmail.com**
 
 Include the following information:
 - Type of issue (e.g. buffer overflow, SQL injection, cross-site scripting, etc.)
@@ -108,14 +108,6 @@ We use the following tools to maintain security:
 
 1. **Rate Limiting**: Currently implemented at application level only
 2. **Session Management**: JWT tokens don't support server-side invalidation
-3. **File Uploads**: Not implemented (potential attack vector if added)
-
-### Recommendations
-
-- Deploy behind a reverse proxy (nginx) for additional security
-- Implement Web Application Firewall (WAF)
-- Regular security audits and penetration testing
-- Monitor for unusual activity patterns
 
 ## 📚 Security Resources
 

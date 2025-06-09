@@ -42,8 +42,8 @@ REST API for team lunch voting with JWT authentication, weighted voting logic, a
 
 ```bash
 # Clone repository
-git clone <repository-url>
-cd lunch-voting-api
+git clone git@github.com:steugene/convius-backend-task-eugene-sternin.git
+cd convius-backend-task-eugene-sternin
 
 # Copy environment template
 cp env.example .env
