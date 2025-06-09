@@ -41,7 +41,7 @@ REST API for team lunch voting with JWT authentication, weighted voting logic, a
 ### 1. Setup
 
 ```bash
-# Clone the repository
+# Clone repository
 git clone <repository-url>
 cd lunch-voting-api
 
