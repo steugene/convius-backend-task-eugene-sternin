@@ -170,7 +170,7 @@ This approach provides **more flexibility for real-world usage** while maintaini
    {
      "title": "Lunch Dec 12th",
      "votes_per_user": 3,  // How many votes each user gets
-     "auto_close_at": "2024-12-12T14:00:00Z"  // Optional auto-close
+     "auto_close_at": "2025-12-12T14:00:00Z"  // Optional auto-close
    }
    ```
 
@@ -207,7 +207,7 @@ This approach provides **more flexibility for real-world usage** while maintaini
 {
   "title": "Complex Lunch Vote",
   "votes_per_user": 3,  // Each user gets 3 votes with weights 1.0, 0.5, 0.25
-  "auto_close_at": "2024-12-12T14:00:00Z"
+  "auto_close_at": "2025-12-12T14:00:00Z"
 }
 ```
 

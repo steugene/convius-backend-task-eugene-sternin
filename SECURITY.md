@@ -128,7 +128,7 @@ We use the following tools to maintain security:
 
 This security policy will be updated as needed. Check back regularly for updates.
 
-**Last updated**: January 2024
+**Last updated**: Jaune 2025
 
 ---
 

@@ -30,7 +30,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **User Management** - Registration, authentication, profile management
 - **Database Integration** - PostgreSQL with SQLAlchemy ORM
 - **Database Migrations** - Alembic for database schema management
-- **Comprehensive Testing** - 802% coverage
+- **Comprehensive Testing** - 82% coverage
 - **Health Checks** - Multiple health check endpoints (/health, /health/ready, /health/live)
 - **Metrics & Monitoring** - Prometheus metrics and application monitoring
 - **Security Features**:
