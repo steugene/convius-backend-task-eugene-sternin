@@ -148,11 +148,18 @@ class Settings(BaseSettings):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+
         if self.ENVIRONMENT == "production":
             if self.POSTGRES_PASSWORD == "postgres":
-                print("Warning: Using default database password in production!")
+                import warnings
+
+                warnings.warn(
+                    "Using default database password in production!", UserWarning
+                )
             if self.SECRET_KEY == "dev-secret-key-change-in-production":
-                print("Warning: Using default SECRET_KEY in production!")
+                import warnings
+
+                warnings.warn("Using default SECRET_KEY in production!", UserWarning)
 
 
 settings = Settings()

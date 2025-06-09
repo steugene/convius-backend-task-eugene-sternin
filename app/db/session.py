@@ -19,9 +19,13 @@ engine = create_engine(
     settings.SQLALCHEMY_DATABASE_URI,
     pool_pre_ping=True,
     pool_size=20,
-    max_overflow=0,
-    pool_recycle=3600,  # Recycle connections after 1 hour
-    echo=settings.DEBUG,  # Log SQL queries in debug mode
+    max_overflow=20,
+    pool_recycle=3600,
+    connect_args={
+        "connect_timeout": 30,
+        "application_name": settings.PROJECT_NAME,
+    },
+    echo=settings.DEBUG,
 )
 
 SessionLocal = sessionmaker(

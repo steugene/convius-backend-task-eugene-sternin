@@ -1,6 +1,6 @@
 from typing import Any, List
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
 from app import crud, models
@@ -13,6 +13,7 @@ from app.schemas.vote_session import (
     VoteSessionUpdate,
     VoteSessionWithRestaurants,
     VoteSessionWithResults,
+    validate_auto_close_at,
 )
 
 router = APIRouter()
@@ -21,8 +22,12 @@ router = APIRouter()
 @router.get("/", response_model=List[VoteSessionWithRestaurants])
 def read_vote_sessions(
     db: Session = Depends(deps.get_db),
-    skip: int = 0,
-    limit: int = 100,
+    skip: int = Query(
+        default=0, ge=0, le=1000, description="Number of records to skip"
+    ),
+    limit: int = Query(
+        default=100, ge=1, le=1000, description="Number of records to return"
+    ),
     current_user: models.User = Depends(deps.get_current_active_user),
 ) -> Any:
     """
@@ -72,6 +77,12 @@ def create_vote_session(
     """
     Create new vote session.
     """
+    # Manual validation instead of relying on Pydantic decorators
+    try:
+        validate_auto_close_at(session_in.auto_close_at, allow_past=False)
+    except ValueError as e:
+        raise HTTPException(status_code=422, detail=str(e))
+
     session = crud.vote_session.create_vote_session(
         db, obj_in=session_in, created_by_user_id=current_user.id
     )
@@ -112,6 +123,13 @@ def update_vote_session(
 
     if session.created_by_user_id != current_user.id:
         raise HTTPException(status_code=403, detail="Not enough permissions")
+
+    # Manual validation if auto_close_at is being updated
+    if hasattr(session_in, "auto_close_at") and session_in.auto_close_at is not None:
+        try:
+            validate_auto_close_at(session_in.auto_close_at, allow_past=False)
+        except ValueError as e:
+            raise HTTPException(status_code=422, detail=str(e))
 
     session = crud.vote_session.update(db, db_obj=session, obj_in=session_in)
     db.commit()

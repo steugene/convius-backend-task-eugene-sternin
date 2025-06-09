@@ -9,6 +9,7 @@ from sqlalchemy import (
     Enum,
     Float,
     ForeignKey,
+    Index,
     Integer,
     String,
     Table,
@@ -39,9 +40,9 @@ class User(Base):
     __tablename__ = "user"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
-    email = Column(String, unique=True, index=True, nullable=False)
-    hashed_password = Column(String, nullable=False)
-    full_name = Column(String, nullable=True)
+    email = Column(String(255), unique=True, index=True, nullable=False)
+    hashed_password = Column(String(255), nullable=False)
+    full_name = Column(String(100), nullable=True)
     is_active = Column(Boolean, default=True)
     created_at = Column(
         DateTime, nullable=False, default=lambda: datetime.now(timezone.utc)
@@ -60,9 +61,9 @@ class Restaurant(Base):
     __tablename__ = "restaurant"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
-    name = Column(String, index=True, nullable=False)
-    description = Column(String, nullable=True)
-    address = Column(String, nullable=True)
+    name = Column(String(100), index=True, nullable=False)
+    description = Column(String(500), nullable=True)
+    address = Column(String(200), nullable=True)
     is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
     created_at = Column(
         DateTime, nullable=False, default=lambda: datetime.now(timezone.utc)
@@ -104,7 +105,7 @@ class VoteSession(Base):
     __tablename__ = "vote_session"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
-    title = Column(String, nullable=False)
+    title = Column(String(200), nullable=False)
     description = Column(Text, nullable=True)
     status: Mapped[VoteSessionStatus] = mapped_column(
         Enum(VoteSessionStatus), nullable=False, default=VoteSessionStatus.DRAFT
@@ -133,6 +134,13 @@ class VoteSession(Base):
     )
     participations = relationship("VoteParticipation", back_populates="vote_session")
 
+    # Indexes for performance
+    __table_args__ = (
+        Index("ix_vote_session_status", "status"),
+        Index("ix_vote_session_created_by", "created_by_user_id"),
+        Index("ix_vote_session_auto_close", "auto_close_at"),
+    )
+
     def __init__(self, **kwargs: Any) -> None:
         super().__init__(**kwargs)
         self._total_votes: float = 0.0
@@ -160,11 +168,13 @@ class VoteParticipation(Base):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
     vote_session_id: Mapped[int] = mapped_column(
-        Integer, ForeignKey("vote_session.id"), nullable=False
+        Integer, ForeignKey("vote_session.id", ondelete="CASCADE"), nullable=False
     )
-    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("user.id"), nullable=False)
+    user_id: Mapped[int] = mapped_column(
+        Integer, ForeignKey("user.id", ondelete="CASCADE"), nullable=False
+    )
     restaurant_id: Mapped[int] = mapped_column(
-        Integer, ForeignKey("restaurant.id"), nullable=False
+        Integer, ForeignKey("restaurant.id", ondelete="RESTRICT"), nullable=False
     )
     vote_sequence: Mapped[int] = mapped_column(Integer, nullable=False)
     weight: Mapped[float] = mapped_column(Float, nullable=False)

@@ -1,3 +1,5 @@
+from contextlib import asynccontextmanager
+
 import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -14,20 +16,33 @@ from app.core.middleware import (
 )
 from app.core.rate_limiter import custom_rate_limit_handler, limiter
 
-# Initialize logging
 setup_logging()
 logger = get_logger(__name__)
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Application lifespan manager."""
+    logger.info(f"🚀 Starting {settings.PROJECT_NAME} v{settings.VERSION}")
+    logger.info(f"🌍 Environment: {settings.ENVIRONMENT}")
+    logger.info(f"🔧 Debug mode: {settings.DEBUG}")
+    logger.info(f"📊 API Documentation: {'/docs' if settings.DEBUG else 'disabled'}")
+
+    yield
+
+    logger.info(f"🛑 Shutting down {settings.PROJECT_NAME}")
+
 
 app = FastAPI(
     title=settings.PROJECT_NAME,
     version=settings.VERSION,
     description="Team lunch voting API with weighted voting logic",
-    openapi_url=f"{settings.API_V1_STR}/openapi.json",
-    docs_url="/docs",
-    redoc_url="/redoc",
+    openapi_url=f"{settings.API_V1_STR}/openapi.json" if settings.DEBUG else None,
+    docs_url="/docs" if settings.DEBUG else None,
+    redoc_url="/redoc" if settings.DEBUG else None,
+    lifespan=lifespan,
 )
 
-# Rate limiting
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, custom_rate_limit_handler)
 
@@ -35,28 +50,34 @@ app.add_middleware(ErrorHandlerMiddleware)
 app.add_middleware(SecurityHeadersMiddleware)
 app.add_middleware(RequestTrackingMiddleware)
 
-# Security middleware for production
 if settings.ENVIRONMENT == "production":
+    allowed_hosts = [
+        "localhost",
+        "127.0.0.1",
+        "*.railway.app",
+    ]
     app.add_middleware(
         TrustedHostMiddleware,
-        allowed_hosts=["*"],  # Configure with your actual domains in production
+        allowed_hosts=allowed_hosts,
     )
 
-# CORS middleware
 if settings.BACKEND_CORS_ORIGINS:
     app.add_middleware(
         CORSMiddleware,
         allow_origins=[str(origin) for origin in settings.BACKEND_CORS_ORIGINS],
         allow_credentials=True,
         allow_methods=["GET", "POST", "PUT", "DELETE"],
-        allow_headers=["*"],
+        allow_headers=[
+            "Content-Type",
+            "Authorization",
+            "Accept",
+            "X-Requested-With",
+        ],
     )
 
-# Include API router
 app.include_router(api_router, prefix=settings.API_V1_STR)
 
 
-# Root endpoint for load balancer health checks
 @app.get("/")
 async def root():
     """Root endpoint for basic health check."""
@@ -68,7 +89,6 @@ async def root():
     }
 
 
-# Health check endpoint for Railway
 @app.get("/health")
 async def health():
     """Simple health check endpoint for Railway."""
@@ -78,21 +98,6 @@ async def health():
         "version": settings.VERSION,
         "environment": settings.ENVIRONMENT,
     }
-
-
-@app.on_event("startup")
-async def startup_event():
-    """Application startup event."""
-    logger.info(f"🚀 Starting {settings.PROJECT_NAME} v{settings.VERSION}")
-    logger.info(f"🌍 Environment: {settings.ENVIRONMENT}")
-    logger.info(f"🔧 Debug mode: {settings.DEBUG}")
-    logger.info(f"📊 API Documentation: {'/docs' if settings.DEBUG else 'disabled'}")
-
-
-@app.on_event("shutdown")
-async def shutdown_event():
-    """Application shutdown event."""
-    logger.info(f"🛑 Shutting down {settings.PROJECT_NAME}")
 
 
 if __name__ == "__main__":
