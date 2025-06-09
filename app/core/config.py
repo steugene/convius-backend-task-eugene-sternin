@@ -148,7 +148,6 @@ class Settings(BaseSettings):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        # Validate production configuration
         if self.ENVIRONMENT == "production":
             if self.POSTGRES_PASSWORD == "postgres":
                 print("Warning: Using default database password in production!")

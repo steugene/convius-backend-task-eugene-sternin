@@ -55,14 +55,11 @@ def custom_rate_limit_handler(request: Request, exc: Exception) -> JSONResponse:
     )
 
 
-# Decorator for stricter rate limiting on sensitive endpoints
 def strict_rate_limit(limit: str):
     """Apply stricter rate limiting to sensitive endpoints."""
     return limiter.limit(limit)
 
 
-# Decorator for auth endpoints
 auth_rate_limit = limiter.limit("5/minute")
 
-# Decorator for voting endpoints
 vote_rate_limit = limiter.limit("10/minute")

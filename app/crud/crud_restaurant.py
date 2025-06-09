@@ -1,11 +1,9 @@
-from datetime import date
 from typing import List, Optional
 
-from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from app.crud.base import CRUDBase
-from app.models.models import Restaurant, Vote
+from app.models.models import Restaurant
 from app.schemas.restaurant import RestaurantCreate, RestaurantUpdate
 
 
@@ -25,25 +23,17 @@ class CRUDRestaurant(CRUDBase[Restaurant, RestaurantCreate, RestaurantUpdate]):
         limit: int = 100,
         restaurant_id: Optional[int] = None,
     ) -> List[Restaurant]:
-        today = date.today()
-
         query = db.query(Restaurant).filter(Restaurant.is_active.is_(True))
 
         if restaurant_id is not None:
             query = query.filter(Restaurant.id == restaurant_id)
 
         restaurants = query.offset(skip).limit(limit).all()
-        for restaurant in restaurants:
-            total_votes = (
-                db.query(func.count(Vote.id))
-                .filter(Vote.restaurant_id == restaurant.id, Vote.vote_date == today)
-                .scalar()
-                or 0
-            )
 
-            distinct_voters = total_votes
-            restaurant.total_votes = int(total_votes)
-            restaurant.distinct_voters = int(distinct_voters)
+        # Set default vote counts since we're using session-based voting now
+        for restaurant in restaurants:
+            restaurant.total_votes = 0.0
+            restaurant.distinct_voters = 0
 
             # Ensure the restaurant is attached to the session
             db.add(restaurant)
@@ -52,34 +42,12 @@ class CRUDRestaurant(CRUDBase[Restaurant, RestaurantCreate, RestaurantUpdate]):
         return restaurants
 
     def get_winner(self, db: Session) -> Optional[Restaurant]:
-        today = date.today()
-
-        winner = (
-            db.query(Restaurant)
-            .join(Vote, Restaurant.id == Vote.restaurant_id)
-            .filter(Vote.vote_date == today, Restaurant.is_active.is_(True))
-            .group_by(Restaurant.id)
-            .order_by(func.count(Vote.id).desc())
-            .first()
-        )
-
-        if winner:
-            total_votes = (
-                db.query(func.count(Vote.id))
-                .filter(Vote.restaurant_id == winner.id, Vote.vote_date == today)
-                .scalar()
-                or 0
-            )
-            winner.total_votes = int(total_votes)
-            winner.distinct_voters = int(
-                total_votes
-            )  # Same as total in standard voting
-
-            # Ensure the restaurant is attached to the session
-            db.add(winner)
-            db.flush()
-
-        return winner
+        """
+        Get daily winner - deprecated with session-based voting.
+        Use vote session results instead.
+        """
+        # Daily winner concept no longer applies with session-based voting
+        return None
 
     def is_in_active_sessions(self, db: Session, *, restaurant_id: int) -> bool:
         """Check if restaurant is currently in any active vote sessions"""

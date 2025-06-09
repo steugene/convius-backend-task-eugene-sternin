@@ -1,11 +1,10 @@
 import enum
 from datetime import datetime, timezone
-from typing import Optional
+from typing import Any, Optional
 
 from sqlalchemy import (
     Boolean,
     Column,
-    Date,
     DateTime,
     Enum,
     Float,
@@ -55,7 +54,6 @@ class User(Base):
     )
 
     # Relationships
-    votes = relationship("Vote", back_populates="user")
 
 
 class Restaurant(Base):
@@ -76,12 +74,11 @@ class Restaurant(Base):
         onupdate=lambda: datetime.now(timezone.utc),
     )
 
-    votes = relationship("Vote", back_populates="restaurant")
     vote_sessions = relationship(
         "VoteSession", secondary=vote_session_restaurants, back_populates="restaurants"
     )
 
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs: Any) -> None:
         super().__init__(**kwargs)
         self._total_votes: float = 0.0
         self._distinct_voters: int = 0
@@ -101,33 +98,6 @@ class Restaurant(Base):
     @distinct_voters.setter
     def distinct_voters(self, value: int) -> None:
         self._distinct_voters = int(value)
-
-
-class Vote(Base):
-    __tablename__ = "vote"
-
-    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
-    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("user.id"), nullable=False)
-    restaurant_id: Mapped[int] = mapped_column(
-        Integer, ForeignKey("restaurant.id"), nullable=False
-    )
-    vote_date = Column(
-        Date, nullable=False, default=lambda: datetime.now(timezone.utc).date()
-    )
-    weight = Column(Float, nullable=False, default=1.0)
-    created_at = Column(
-        DateTime, nullable=False, default=lambda: datetime.now(timezone.utc)
-    )
-    updated_at = Column(
-        DateTime,
-        nullable=False,
-        default=lambda: datetime.now(timezone.utc),
-        onupdate=lambda: datetime.now(timezone.utc),
-    )
-
-    # Relationships
-    user = relationship("User", back_populates="votes")
-    restaurant = relationship("Restaurant", back_populates="votes")
 
 
 class VoteSession(Base):
@@ -163,7 +133,7 @@ class VoteSession(Base):
     )
     participations = relationship("VoteParticipation", back_populates="vote_session")
 
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs: Any) -> None:
         super().__init__(**kwargs)
         self._total_votes: float = 0.0
         self._results: list = []

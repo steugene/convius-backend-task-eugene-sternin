@@ -1,12 +1,10 @@
 from typing import Any, List
 
 from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from app import crud, models
 from app.api import deps
-from app.models.models import Vote
 from app.schemas.restaurant import (
     Restaurant,
     RestaurantCreate,
@@ -44,21 +42,10 @@ def read_all_restaurants(
     # Use base CRUD method that doesn't filter by is_active
     restaurants = crud.restaurant.get_multi(db, skip=skip, limit=limit)
 
-    from datetime import date
-
-    today = date.today()
-
+    # Set default vote counts since we're using session-based voting now
     for restaurant in restaurants:
-        # Calculate total votes (simple count)
-        total_votes = (
-            db.query(func.count(Vote.id))
-            .filter(Vote.restaurant_id == restaurant.id, Vote.vote_date == today)
-            .scalar()
-            or 0
-        )
-
-        restaurant.total_votes = int(total_votes)
-        restaurant.distinct_voters = int(total_votes)
+        restaurant.total_votes = 0.0
+        restaurant.distinct_voters = 0
         db.add(restaurant)
         db.flush()
 

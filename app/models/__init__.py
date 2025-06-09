@@ -1,3 +1,3 @@
-from app.models.models import Restaurant, User, Vote
+from app.models.models import Restaurant, User
 
-__all__ = ["Restaurant", "User", "Vote"]
+__all__ = ["Restaurant", "User"]
