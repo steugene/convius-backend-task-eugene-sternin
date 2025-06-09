@@ -17,12 +17,9 @@ class CRUDVoteParticipation(
     ) -> VoteParticipation:
         """Cast a vote in a session with weighted voting logic"""
 
-        # Check for auto-close sessions first
         from app.crud.crud_vote_session import vote_session
 
         vote_session.check_and_auto_close_sessions(db)
-
-        # Get the session and validate
         session = db.query(VoteSession).filter(VoteSession.id == session_id).first()
         if not session:
             raise ValueError("Vote session not found")
@@ -30,7 +27,6 @@ class CRUDVoteParticipation(
         if session.status != VoteSessionStatus.ACTIVE:
             raise ValueError("Cannot vote in inactive session")
 
-        # Check if restaurant is part of this session
         restaurant_in_session = any(r.id == restaurant_id for r in session.restaurants)
         if not restaurant_in_session:
             raise ValueError("Restaurant is not part of this vote session")
@@ -45,13 +41,11 @@ class CRUDVoteParticipation(
             .count()
         )
 
-        # Check if user has reached their vote limit
         if user_vote_count >= session.votes_per_user:
             raise ValueError(
                 f"User has already cast {session.votes_per_user} votes in this session"
             )
 
-        # Calculate vote sequence and weight
         vote_sequence = user_vote_count + 1
 
         # Weighted voting logic: 1st = 1.0, 2nd = 0.5, 3rd+ = 0.25
@@ -62,7 +56,6 @@ class CRUDVoteParticipation(
         else:
             weight = 0.25
 
-        # Create new vote
         db_obj = VoteParticipation(
             vote_session_id=session_id,
             user_id=user_id,

@@ -15,7 +15,6 @@ class Base(DeclarativeBase):
     pass
 
 
-# Create engine with production-ready settings
 engine = create_engine(
     settings.SQLALCHEMY_DATABASE_URI,
     pool_pre_ping=True,

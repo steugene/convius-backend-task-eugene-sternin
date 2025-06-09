@@ -69,7 +69,6 @@ class CRUDVoteSession(CRUDBase[VoteSession, VoteSessionCreate, VoteSessionUpdate
         if session.status != VoteSessionStatus.DRAFT:
             raise ValueError("Can only add restaurants to draft sessions")
 
-        # Get restaurants
         restaurants = (
             db.query(Restaurant).filter(Restaurant.id.in_(restaurant_ids)).all()
         )
@@ -151,7 +150,6 @@ class CRUDVoteSession(CRUDBase[VoteSession, VoteSessionCreate, VoteSessionUpdate
         if not session:
             return None
 
-        # Calculate results using weighted votes
         results = (
             db.query(
                 Restaurant.id,
@@ -172,7 +170,6 @@ class CRUDVoteSession(CRUDBase[VoteSession, VoteSessionCreate, VoteSessionUpdate
             .all()
         )
 
-        # Calculate total weighted votes
         total_votes = (
             db.query(func.sum(VoteParticipation.weight))
             .filter(VoteParticipation.vote_session_id == session_id)
@@ -180,7 +177,6 @@ class CRUDVoteSession(CRUDBase[VoteSession, VoteSessionCreate, VoteSessionUpdate
             or 0
         )
 
-        # Set computed properties
         session.total_votes = float(total_votes)
         session.results = [
             {

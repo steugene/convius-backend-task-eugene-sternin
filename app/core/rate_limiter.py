@@ -15,21 +15,17 @@ def get_client_id(request: Request) -> str:
     Get client identifier for rate limiting.
     Uses authenticated user ID if available, otherwise IP address.
     """
-    # Try to get user ID from request state (set during authentication)
     if hasattr(request.state, "user") and request.state.user:
         return f"user:{request.state.user.id}"  # noqa: E231
 
-    # Fall back to IP address
     return get_remote_address(request)
 
 
-# Create limiter instance
 limiter = Limiter(
     key_func=get_client_id, default_limits=[f"{settings.REQUESTS_PER_MINUTE}/minute"]
 )
 
 
-# Custom rate limit exceeded handler
 def custom_rate_limit_handler(request: Request, exc: Exception) -> JSONResponse:
     """Custom handler for rate limit exceeded."""
     logger.warning(

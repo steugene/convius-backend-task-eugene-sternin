@@ -55,15 +55,9 @@ def get_health_metrics(db: Session = Depends(get_db)) -> Dict[str, Any]:
         db_healthy = False
         DATABASE_CONNECTIONS.labels(status="error").inc()
 
-    # Get basic stats
     try:
-        # Get total votes count
         total_votes = db.execute(text("SELECT COUNT(*) FROM vote")).scalar()
-
-        # Get total restaurants count
         total_restaurants = db.execute(text("SELECT COUNT(*) FROM restaurant")).scalar()
-
-        # Get total users count
         total_users = db.execute(text('SELECT COUNT(*) FROM "user"')).scalar()
 
         stats = {

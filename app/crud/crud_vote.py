@@ -38,7 +38,6 @@ class CRUDVote(CRUDBase[Vote, VoteCreate, VoteUpdate]):
     def create_vote(self, db: Session, *, obj_in: VoteCreate, user_id: int) -> Vote:
         today = self.get_current_date()
 
-        # Check if voting is still allowed (before deadline)
         now = datetime.now().time()
         deadline = time(settings.VOTING_DEADLINE_HOUR, settings.VOTING_DEADLINE_MINUTE)
 
@@ -49,11 +48,9 @@ class CRUDVote(CRUDBase[Vote, VoteCreate, VoteUpdate]):
                 f"{settings.VOTING_DEADLINE_MINUTE:02d}"  # noqa: E231
             )
 
-        # Check if it's a weekday (optional - most lunch voting is weekdays only)
         if datetime.now().weekday() >= 5:  # Saturday = 5, Sunday = 6
             raise ValueError("Voting is only allowed on weekdays")
 
-        # Check if user has already voted today
         existing_vote = (
             db.query(Vote)
             .filter(Vote.user_id == user_id, Vote.vote_date == today)
@@ -61,13 +58,11 @@ class CRUDVote(CRUDBase[Vote, VoteCreate, VoteUpdate]):
         )
 
         if existing_vote:
-            # Update existing vote (change restaurant choice)
             existing_vote.restaurant_id = obj_in.restaurant_id
             db.add(existing_vote)
             db.flush()
             return existing_vote
 
-        # Create new vote with standard weight of 1.0
         db_obj = Vote(
             user_id=user_id,
             restaurant_id=obj_in.restaurant_id,
@@ -82,7 +77,6 @@ class CRUDVote(CRUDBase[Vote, VoteCreate, VoteUpdate]):
     def get_vote_history(
         self, db: Session, *, start_date: date, end_date: date
     ) -> List[Dict[str, Any]]:
-        # Get all votes in date range
         votes = (
             db.query(
                 Vote.vote_date,

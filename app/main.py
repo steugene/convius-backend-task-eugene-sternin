@@ -31,7 +31,6 @@ app = FastAPI(
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, custom_rate_limit_handler)
 
-# Add middleware (order matters - first added is outermost)
 app.add_middleware(ErrorHandlerMiddleware)
 app.add_middleware(SecurityHeadersMiddleware)
 app.add_middleware(RequestTrackingMiddleware)

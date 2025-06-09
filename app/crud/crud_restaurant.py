@@ -54,7 +54,6 @@ class CRUDRestaurant(CRUDBase[Restaurant, RestaurantCreate, RestaurantUpdate]):
     def get_winner(self, db: Session) -> Optional[Restaurant]:
         today = date.today()
 
-        # Get the restaurant with the most votes (only active restaurants)
         winner = (
             db.query(Restaurant)
             .join(Vote, Restaurant.id == Vote.restaurant_id)
@@ -65,15 +64,12 @@ class CRUDRestaurant(CRUDBase[Restaurant, RestaurantCreate, RestaurantUpdate]):
         )
 
         if winner:
-            # Calculate total votes (simple count)
             total_votes = (
                 db.query(func.count(Vote.id))
                 .filter(Vote.restaurant_id == winner.id, Vote.vote_date == today)
                 .scalar()
                 or 0
             )
-
-            # Set the computed properties
             winner.total_votes = int(total_votes)
             winner.distinct_voters = int(
                 total_votes
@@ -102,7 +98,6 @@ class CRUDRestaurant(CRUDBase[Restaurant, RestaurantCreate, RestaurantUpdate]):
 
     def soft_delete(self, db: Session, *, restaurant_id: int) -> Optional[Restaurant]:
         """Soft delete restaurant by setting is_active to False"""
-        # Check if restaurant is in any active vote sessions
         if self.is_in_active_sessions(db, restaurant_id=restaurant_id):
             raise ValueError(
                 "Cannot delete restaurant that is currently in active vote sessions"

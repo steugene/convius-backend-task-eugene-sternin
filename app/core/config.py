@@ -104,7 +104,6 @@ class Settings(BaseSettings):
 
     @property
     def SQLALCHEMY_DATABASE_URI(self) -> str:
-        # Check if Railway provides a DATABASE_URL (common pattern)
         import os
 
         database_url = os.getenv("DATABASE_URL")

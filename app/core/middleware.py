@@ -34,7 +34,6 @@ class ErrorHandlerMiddleware(BaseHTTPMiddleware):
                 exc_info=True,
             )
 
-            # Return generic error in production
             if settings.ENVIRONMENT == "production":
                 return JSONResponse(
                     status_code=500,
@@ -62,7 +61,6 @@ class RequestTrackingMiddleware(BaseHTTPMiddleware):
         request_id = str(uuid.uuid4())
         request.state.request_id = request_id
 
-        # Start timer
         start_time = time.time()
 
         # Log request
@@ -81,7 +79,6 @@ class RequestTrackingMiddleware(BaseHTTPMiddleware):
         # Process request
         response: Response = await call_next(request)
 
-        # Calculate duration
         duration = time.time() - start_time
 
         # Log response
@@ -96,7 +93,6 @@ class RequestTrackingMiddleware(BaseHTTPMiddleware):
             },
         )
 
-        # Add request ID to response headers
         response.headers["X-Request-ID"] = request_id
 
         return response
@@ -108,7 +104,6 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next: Callable) -> Response:
         response: Response = await call_next(request)
 
-        # Add security headers
         response.headers["X-Content-Type-Options"] = "nosniff"
         response.headers["X-Frame-Options"] = "DENY"
         response.headers["X-XSS-Protection"] = "1; mode=block"

@@ -10,7 +10,6 @@ from app.core.config import settings
 def setup_logging() -> None:
     """Configure logging for the application."""
 
-    # Create logs directory if it doesn't exist
     log_dir = Path("logs")
     log_dir.mkdir(exist_ok=True)
 
