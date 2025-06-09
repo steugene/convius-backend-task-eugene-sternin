@@ -65,6 +65,7 @@ class Restaurant(Base):
     name = Column(String, index=True, nullable=False)
     description = Column(String, nullable=True)
     address = Column(String, nullable=True)
+    is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
     created_at = Column(
         DateTime, nullable=False, default=lambda: datetime.now(timezone.utc)
     )

@@ -11,7 +11,11 @@ from app.schemas.restaurant import RestaurantCreate, RestaurantUpdate
 
 class CRUDRestaurant(CRUDBase[Restaurant, RestaurantCreate, RestaurantUpdate]):
     def get_by_name(self, db: Session, *, name: str) -> Optional[Restaurant]:
-        return db.query(Restaurant).filter(Restaurant.name == name).first()
+        return (
+            db.query(Restaurant)
+            .filter(Restaurant.name == name, Restaurant.is_active.is_(True))
+            .first()
+        )
 
     def get_with_votes(
         self,
@@ -23,8 +27,8 @@ class CRUDRestaurant(CRUDBase[Restaurant, RestaurantCreate, RestaurantUpdate]):
     ) -> List[Restaurant]:
         today = date.today()
 
-        # Base query
-        query = db.query(Restaurant)
+        # Base query - only active restaurants
+        query = db.query(Restaurant).filter(Restaurant.is_active.is_(True))
 
         # If restaurant_id is provided, filter by it
         if restaurant_id is not None:
@@ -59,11 +63,11 @@ class CRUDRestaurant(CRUDBase[Restaurant, RestaurantCreate, RestaurantUpdate]):
     def get_winner(self, db: Session) -> Optional[Restaurant]:
         today = date.today()
 
-        # Get the restaurant with the most votes (simple counting)
+        # Get the restaurant with the most votes (only active restaurants)
         winner = (
             db.query(Restaurant)
             .join(Vote, Restaurant.id == Vote.restaurant_id)
-            .filter(Vote.vote_date == today)
+            .filter(Vote.vote_date == today, Restaurant.is_active.is_(True))
             .group_by(Restaurant.id)
             .order_by(func.count(Vote.id).desc())
             .first()
@@ -89,6 +93,49 @@ class CRUDRestaurant(CRUDBase[Restaurant, RestaurantCreate, RestaurantUpdate]):
             db.flush()
 
         return winner
+
+    def is_in_active_sessions(self, db: Session, *, restaurant_id: int) -> bool:
+        """Check if restaurant is currently in any active vote sessions"""
+        from app.models.models import VoteSession, VoteSessionStatus
+
+        active_sessions = (
+            db.query(VoteSession)
+            .join(VoteSession.restaurants)
+            .filter(
+                Restaurant.id == restaurant_id,
+                VoteSession.status == VoteSessionStatus.ACTIVE,
+            )
+            .first()
+        )
+        return active_sessions is not None
+
+    def soft_delete(self, db: Session, *, restaurant_id: int) -> Optional[Restaurant]:
+        """Soft delete restaurant by setting is_active to False"""
+        # Check if restaurant is in any active vote sessions
+        if self.is_in_active_sessions(db, restaurant_id=restaurant_id):
+            raise ValueError(
+                "Cannot delete restaurant that is currently in active vote sessions"
+            )
+
+        restaurant = db.query(Restaurant).filter(Restaurant.id == restaurant_id).first()
+        if not restaurant:
+            return None
+
+        restaurant.is_active = False
+        db.add(restaurant)
+        db.flush()
+        return restaurant
+
+    def reactivate(self, db: Session, *, restaurant_id: int) -> Optional[Restaurant]:
+        """Reactivate a soft-deleted restaurant"""
+        restaurant = db.query(Restaurant).filter(Restaurant.id == restaurant_id).first()
+        if not restaurant:
+            return None
+
+        restaurant.is_active = True
+        db.add(restaurant)
+        db.flush()
+        return restaurant
 
 
 restaurant = CRUDRestaurant(Restaurant)

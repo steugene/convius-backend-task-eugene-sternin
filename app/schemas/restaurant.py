@@ -8,14 +8,18 @@ class RestaurantBase(BaseModel):
     name: str
     description: Optional[str] = None
     address: Optional[str] = None
+    is_active: bool = True
 
 
 class RestaurantCreate(RestaurantBase):
     pass
 
 
-class RestaurantUpdate(RestaurantBase):
-    pass
+class RestaurantUpdate(BaseModel):
+    name: Optional[str] = None
+    description: Optional[str] = None
+    address: Optional[str] = None
+    is_active: Optional[bool] = None
 
 
 class RestaurantInDBBase(RestaurantBase):
