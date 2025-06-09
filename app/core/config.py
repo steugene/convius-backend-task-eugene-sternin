@@ -16,6 +16,7 @@ class Settings(BaseSettings):
     API_V1_STR: str = "/api/v1"
     ENVIRONMENT: str = "development"  # development, staging, production
     DEBUG: bool = False
+    ENABLE_DOCS: bool = True  # Enable API documentation (Swagger/Redoc)
 
     # CORS Configuration
     BACKEND_CORS_ORIGINS: List[str] = []
