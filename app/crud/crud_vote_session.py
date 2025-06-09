@@ -76,7 +76,6 @@ class CRUDVoteSession(CRUDBase[VoteSession, VoteSessionCreate, VoteSessionUpdate
         if len(restaurants) != len(restaurant_ids):
             raise ValueError("Some restaurants not found")
 
-        # Add restaurants to session
         session.restaurants.extend(restaurants)
         db.add(session)
         db.flush()
@@ -96,7 +95,6 @@ class CRUDVoteSession(CRUDBase[VoteSession, VoteSessionCreate, VoteSessionUpdate
         if session.status != VoteSessionStatus.DRAFT:
             raise ValueError("Can only remove restaurants from draft sessions")
 
-        # Remove restaurants from session
         session.restaurants = [
             r for r in session.restaurants if r.id not in restaurant_ids
         ]

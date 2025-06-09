@@ -1,6 +1,6 @@
 # 🍽️ Lunch Voting API
 
-A production-ready REST API for lunch voting system built with FastAPI, featuring JWT authentication, weighted voting, and comprehensive monitoring.
+REST API for team lunch voting with JWT authentication, weighted voting logic, and monitoring capabilities.
 
 ## ✨ Features
 
@@ -295,4 +295,4 @@ LOG_LEVEL=INFO
 
 ---
 
-**Built with ❤️ using FastAPI, SQLAlchemy, and deployed on Railway.**
+**Tech Stack**: FastAPI • SQLAlchemy • PostgreSQL • Railway

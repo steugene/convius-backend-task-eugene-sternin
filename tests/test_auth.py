@@ -9,7 +9,7 @@ from app.schemas.user import UserCreate
 
 def test_register_user(client: TestClient, db: Session) -> None:
     data = {
-        "email": "newuser@example.com",
+        "email": "newuser@test.example",
         "password": "newpassword",
         "full_name": "New User",
     }
@@ -57,7 +57,7 @@ def test_login_wrong_password(client: TestClient, test_user: User) -> None:
 
 def test_login_nonexistent_user(client: TestClient) -> None:
     login_data = {
-        "username": "nonexistent@example.com",
+        "username": "nonexistent@test.example",
         "password": "password",
     }
     response = client.post(f"{settings.API_V1_STR}/auth/login", data=login_data)

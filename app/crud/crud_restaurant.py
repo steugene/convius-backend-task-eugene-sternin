@@ -27,19 +27,13 @@ class CRUDRestaurant(CRUDBase[Restaurant, RestaurantCreate, RestaurantUpdate]):
     ) -> List[Restaurant]:
         today = date.today()
 
-        # Base query - only active restaurants
         query = db.query(Restaurant).filter(Restaurant.is_active.is_(True))
 
-        # If restaurant_id is provided, filter by it
         if restaurant_id is not None:
             query = query.filter(Restaurant.id == restaurant_id)
 
-        # Get restaurants
         restaurants = query.offset(skip).limit(limit).all()
-
-        # Calculate vote statistics for each restaurant
         for restaurant in restaurants:
-            # Calculate total votes (simple count)
             total_votes = (
                 db.query(func.count(Vote.id))
                 .filter(Vote.restaurant_id == restaurant.id, Vote.vote_date == today)
@@ -47,10 +41,7 @@ class CRUDRestaurant(CRUDBase[Restaurant, RestaurantCreate, RestaurantUpdate]):
                 or 0
             )
 
-            # Calculate distinct voters (same as total votes in standard voting)
             distinct_voters = total_votes
-
-            # Set the computed properties
             restaurant.total_votes = int(total_votes)
             restaurant.distinct_voters = int(distinct_voters)
 

@@ -44,7 +44,6 @@ def read_all_restaurants(
     # Use base CRUD method that doesn't filter by is_active
     restaurants = crud.restaurant.get_multi(db, skip=skip, limit=limit)
 
-    # Calculate vote statistics for each restaurant
     from datetime import date
 
     today = date.today()
