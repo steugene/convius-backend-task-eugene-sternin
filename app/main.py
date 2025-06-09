@@ -26,7 +26,9 @@ async def lifespan(app: FastAPI):
     logger.info(f"🚀 Starting {settings.PROJECT_NAME} v{settings.VERSION}")
     logger.info(f"🌍 Environment: {settings.ENVIRONMENT}")
     logger.info(f"🔧 Debug mode: {settings.DEBUG}")
-    logger.info(f"📊 API Documentation: {'/docs' if settings.DEBUG else 'disabled'}")
+    logger.info(
+        f"📊 API Documentation: {'/docs' if settings.ENABLE_DOCS else 'disabled'}"
+    )
 
     yield
 
@@ -37,9 +39,9 @@ app = FastAPI(
     title=settings.PROJECT_NAME,
     version=settings.VERSION,
     description="Team lunch voting API with weighted voting logic",
-    openapi_url=f"{settings.API_V1_STR}/openapi.json" if settings.DEBUG else None,
-    docs_url="/docs" if settings.DEBUG else None,
-    redoc_url="/redoc" if settings.DEBUG else None,
+    openapi_url=f"{settings.API_V1_STR}/openapi.json" if settings.ENABLE_DOCS else None,
+    docs_url="/docs" if settings.ENABLE_DOCS else None,
+    redoc_url="/redoc" if settings.ENABLE_DOCS else None,
     lifespan=lifespan,
 )
 

@@ -10,6 +10,7 @@ from app.schemas.vote_session import (
     VoteParticipationCreate,
     VoteSession,
     VoteSessionCreate,
+    VoteSessionEndResponse,
     VoteSessionUpdate,
     VoteSessionWithRestaurants,
     VoteSessionWithResults,
@@ -204,7 +205,7 @@ def start_vote_session(
         raise HTTPException(status_code=400, detail=str(e))
 
 
-@router.post("/{session_id}/end", response_model=VoteSession)
+@router.post("/{session_id}/end", response_model=VoteSessionEndResponse)
 def end_vote_session(
     *,
     db: Session = Depends(deps.get_db),
@@ -212,10 +213,10 @@ def end_vote_session(
     current_user: models.User = Depends(deps.get_current_active_user),
 ) -> Any:
     """
-    End a vote session (only by creator).
+    End a vote session (only by creator) and return with winning restaurant.
     """
     try:
-        session = crud.vote_session.end_session(
+        session = crud.vote_session.end_session_with_winner(
             db, session_id=session_id, user_id=current_user.id
         )
         db.commit()

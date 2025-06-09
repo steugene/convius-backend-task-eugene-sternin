@@ -543,3 +543,102 @@ def test_auto_close_functionality(authorized_client: TestClient, db: Session) ->
     ), f"Expected 200, got {response.status_code}. Response: {response.text}"
     session = response.json()
     assert session["auto_close_at"] is not None
+
+
+def test_end_vote_session_returns_winning_restaurant(
+    authorized_client: TestClient, db: Session
+) -> None:
+    """Test that ending a vote session returns the winning restaurant"""
+    # Create two restaurants
+    restaurant1 = Restaurant(name="Pizza Place", description="Best pizza")
+    restaurant2 = Restaurant(name="Burger Joint", description="Great burgers")
+    db.add_all([restaurant1, restaurant2])
+    db.commit()
+    db.refresh(restaurant1)
+    db.refresh(restaurant2)
+
+    restaurant1_id = restaurant1.id
+    restaurant2_id = restaurant2.id
+
+    # Create session with multiple votes per user
+    session_data = {
+        "title": "Lunch Vote",
+        "description": "Where should we go for lunch?",
+        "votes_per_user": 2,
+    }
+    response = authorized_client.post(
+        f"{settings.API_V1_STR}/vote-sessions/", json=session_data
+    )
+    session_id = response.json()["id"]
+
+    # Add restaurants and start session
+    authorized_client.post(
+        f"{settings.API_V1_STR}/vote-sessions/{session_id}/restaurants",
+        json=[restaurant1_id, restaurant2_id],
+    )
+    authorized_client.post(f"{settings.API_V1_STR}/vote-sessions/{session_id}/start")
+
+    # Vote for restaurant1 twice (1.0 + 0.5 = 1.5 total weight)
+    authorized_client.post(
+        f"{settings.API_V1_STR}/vote-sessions/{session_id}/vote",
+        json={"restaurant_id": restaurant1_id},
+    )
+    authorized_client.post(
+        f"{settings.API_V1_STR}/vote-sessions/{session_id}/vote",
+        json={"restaurant_id": restaurant1_id},
+    )
+
+    # End the session
+    response = authorized_client.post(
+        f"{settings.API_V1_STR}/vote-sessions/{session_id}/end"
+    )
+
+    assert response.status_code == 200
+    content = response.json()
+
+    # Verify basic session data
+    assert content["status"] == "closed"
+    assert content["ended_at"] is not None
+
+    # Verify winning restaurant is included
+    assert "winning_restaurant" in content
+    assert content["winning_restaurant"] is not None
+    assert content["winning_restaurant"]["id"] == restaurant1_id
+    assert content["winning_restaurant"]["name"] == "Pizza Place"
+
+
+def test_end_vote_session_no_votes_no_winner(
+    authorized_client: TestClient, db: Session, test_restaurant: Restaurant
+) -> None:
+    """Test that ending a session with no votes returns no winning restaurant"""
+    restaurant_id = test_restaurant.id
+
+    # Create and start session
+    session_data = {"title": "No Votes Session", "description": "Test"}
+    response = authorized_client.post(
+        f"{settings.API_V1_STR}/vote-sessions/", json=session_data
+    )
+    session_id = response.json()["id"]
+
+    # Add restaurant and start session (but don't vote)
+    authorized_client.post(
+        f"{settings.API_V1_STR}/vote-sessions/{session_id}/restaurants",
+        json=[restaurant_id],
+    )
+    authorized_client.post(f"{settings.API_V1_STR}/vote-sessions/{session_id}/start")
+
+    # End the session
+    response = authorized_client.post(
+        f"{settings.API_V1_STR}/vote-sessions/{session_id}/end"
+    )
+
+    assert response.status_code == 200
+    content = response.json()
+
+    # Verify basic session data
+    assert content["status"] == "closed"
+    assert content["ended_at"] is not None
+
+    # Verify no winning restaurant (since no votes were cast)
+    assert "winning_restaurant" in content
+    assert content["winning_restaurant"] is None

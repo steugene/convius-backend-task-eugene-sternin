@@ -142,6 +142,31 @@ class CRUDVoteSession(CRUDBase[VoteSession, VoteSessionCreate, VoteSessionUpdate
         db.flush()
         return session
 
+    def end_session_with_winner(
+        self, db: Session, *, session_id: int, user_id: int
+    ) -> VoteSession:
+        """End a vote session and return it with winning restaurant (only by creator)"""
+        # First end the session using existing method
+        session = self.end_session(db, session_id=session_id, user_id=user_id)
+
+        # Now calculate the winning restaurant
+        winning_restaurant_query = (
+            db.query(Restaurant)
+            .join(VoteParticipation, Restaurant.id == VoteParticipation.restaurant_id)
+            .filter(VoteParticipation.vote_session_id == session_id)
+            .group_by(Restaurant.id)
+            .order_by(
+                func.sum(VoteParticipation.weight).desc(),
+                func.count(func.distinct(VoteParticipation.user_id)).desc(),
+            )
+            .first()
+        )
+
+        # Add the winning restaurant to the session
+        session.winning_restaurant = winning_restaurant_query
+
+        return session
+
     def get_session_with_results(
         self, db: Session, *, session_id: int
     ) -> Optional[VoteSession]:

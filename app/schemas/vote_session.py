@@ -113,6 +113,17 @@ class VoteSessionWithResults(VoteSessionWithRestaurants):
         from_attributes = True
 
 
+class VoteSessionEndResponse(VoteSession):
+    """Response schema when ending a vote session - includes winning restaurant."""
+
+    winning_restaurant: Optional["Restaurant"] = Field(
+        None, description="The restaurant that won the vote (if any votes were cast)"
+    )
+
+    class Config:
+        from_attributes = True
+
+
 class VoteParticipationBase(BaseModel):
     restaurant_id: int = Field(..., gt=0, description="Restaurant ID to vote for")
 
@@ -140,3 +151,4 @@ class VoteParticipation(VoteParticipationInDBBase):
 from app.schemas.restaurant import Restaurant  # noqa: E402
 
 VoteSessionWithRestaurants.model_rebuild()
+VoteSessionEndResponse.model_rebuild()
