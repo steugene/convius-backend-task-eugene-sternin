@@ -38,10 +38,21 @@ for i in range(max_retries):
         time.sleep(2)
 "
 
-# Run database migrations
+# Run database migrations with verbose output
 echo "Running database migrations..."
 cd /app
-alembic upgrade head
+
+echo "Current migration version:"
+alembic current || echo "No current version found"
+
+echo "Running alembic upgrade head..."
+alembic upgrade head || {
+    echo "Migration failed! Exiting..."
+    exit 1
+}
+
+echo "Migration completed. Current version:"
+alembic current
 
 # Start the application with proper port binding
 echo "Starting gunicorn server..."
