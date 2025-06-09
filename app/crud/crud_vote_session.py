@@ -146,10 +146,8 @@ class CRUDVoteSession(CRUDBase[VoteSession, VoteSessionCreate, VoteSessionUpdate
         self, db: Session, *, session_id: int, user_id: int
     ) -> VoteSession:
         """End a vote session and return it with winning restaurant (only by creator)"""
-        # First end the session using existing method
         session = self.end_session(db, session_id=session_id, user_id=user_id)
 
-        # Now calculate the winning restaurant
         winning_restaurant_query = (
             db.query(Restaurant)
             .join(VoteParticipation, Restaurant.id == VoteParticipation.restaurant_id)
@@ -162,8 +160,7 @@ class CRUDVoteSession(CRUDBase[VoteSession, VoteSessionCreate, VoteSessionUpdate
             .first()
         )
 
-        # Add the winning restaurant to the session
-        session.winning_restaurant = winning_restaurant_query
+        setattr(session, "winning_restaurant", winning_restaurant_query)
 
         return session
 
@@ -202,16 +199,20 @@ class CRUDVoteSession(CRUDBase[VoteSession, VoteSessionCreate, VoteSessionUpdate
             or 0
         )
 
-        session.total_votes = float(total_votes)
-        session.results = [
-            {
-                "restaurant_id": result.id,
-                "restaurant_name": result.name,
-                "weighted_votes": float(result.weighted_votes or 0),
-                "distinct_voters": result.distinct_voters,
-            }
-            for result in results
-        ]
+        setattr(session, "total_votes", float(total_votes))
+        setattr(
+            session,
+            "results",
+            [
+                {
+                    "restaurant_id": result.id,
+                    "restaurant_name": result.name,
+                    "weighted_votes": float(result.weighted_votes or 0),
+                    "distinct_voters": result.distinct_voters,
+                }
+                for result in results
+            ],
+        )
 
         return session
 
