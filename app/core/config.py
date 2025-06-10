@@ -19,15 +19,24 @@ class Settings(BaseSettings):
     ENABLE_DOCS: bool = True  # Enable API documentation (Swagger/Redoc)
 
     # CORS Configuration
-    BACKEND_CORS_ORIGINS: List[str] = []
+    BACKEND_CORS_ORIGINS: Union[List[str], str] = []
 
     @field_validator("BACKEND_CORS_ORIGINS", mode="before")
     @classmethod
     def assemble_cors_origins(cls, v: Union[str, List[str]]) -> List[str]:
-        if isinstance(v, str) and not v.startswith("["):
-            return [i.strip() for i in v.split(",")]
+        if isinstance(v, str):
+            if v.startswith("[") and v.endswith("]"):
+                import json
+
+                try:
+                    parsed = json.loads(v)
+                    if isinstance(parsed, list):
+                        return [str(item) for item in parsed]
+                except json.JSONDecodeError:
+                    pass
+            return [i.strip() for i in v.split(",") if i.strip()]
         elif isinstance(v, list):
-            return v
+            return [str(item) for item in v]
         return []
 
     # Database Configuration
@@ -139,9 +148,22 @@ class Settings(BaseSettings):
     @field_validator("SECRET_KEY", mode="before")
     @classmethod
     def validate_secret_key(cls, v: str) -> str:
-        if not v or v == "your-secret-key-here":
+        # Check environment variable first (Railway/production provides SECRET_KEY)
+        import os
+
+        env_secret = os.getenv("SECRET_KEY")
+        if env_secret:
+            return env_secret
+
+        # If no env var and in production, generate a secure key
+        environment = os.getenv("ENVIRONMENT", "development")
+        if environment == "production" and (
+            not v or v == "dev-secret-key-change-in-production"
+        ):
             return secrets.token_urlsafe(32)
-        return v
+
+        # For development/testing, allow the default key for stability
+        return v or "dev-secret-key-change-in-production"
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -153,10 +175,6 @@ class Settings(BaseSettings):
                 warnings.warn(
                     "Using default database password in production!", UserWarning
                 )
-            if self.SECRET_KEY == "dev-secret-key-change-in-production":
-                import warnings
-
-                warnings.warn("Using default SECRET_KEY in production!", UserWarning)
 
 
 settings = Settings()

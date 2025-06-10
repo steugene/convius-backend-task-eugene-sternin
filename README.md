@@ -34,6 +34,48 @@ REST API for team lunch voting with JWT authentication, weighted voting logic, a
 
 ## 🚀 Quick Start
 
+### One Command Setup ⚡
+
+```bash
+# Clone repository
+git clone git@github.com:steugene/convius-backend-task-eugene-sternin.git
+cd convius-backend-task-eugene-sternin
+
+# 🚀 Complete local development setup (one command!)
+make start
+```
+
+**After setup completes:**
+- 🌐 **API**: http://localhost:8000
+- 📚 **Docs**: http://localhost:8000/docs
+- 🏥 **Health**: http://localhost:8000/health
+
+### Common Commands
+
+```bash
+# Stop all services
+make stop
+
+# View logs
+make logs
+
+# Run tests
+make test
+
+# Code formatting & linting
+make format
+make lint
+
+# Database operations
+make db-upgrade    # Apply migrations
+make db-reset      # Reset database
+
+# See all available commands
+make help
+```
+
+### Manual Setup (if preferred)
+
 ### Prerequisites
 - Python 3.9+
 - PostgreSQL 12+
