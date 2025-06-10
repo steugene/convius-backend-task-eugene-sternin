@@ -41,7 +41,7 @@ REST API for team lunch voting with JWT authentication, weighted voting logic, a
 git clone git@github.com:steugene/convius-backend-task-eugene-sternin.git
 cd convius-backend-task-eugene-sternin
 
-# 🚀 Complete local development setup (one command!)
+# 🚀 Local development setup
 make start
 ```
 
@@ -160,7 +160,7 @@ All code must pass these checks before being committed!
 | **Vote Sessions** | User-managed voting sessions | `/vote-sessions/`, `/vote-sessions/{id}/vote` |
 | **Health** | System monitoring | `/health`, `/metrics` |
 
-> 💡 **Tip**: Visit the [Swagger UI](https://conviustask-production.up.railway.app/docs) for complete API documentation with interactive testing!
+> 💡 **Tip**: Visit the [Swagger UI](https://conviustask-production.up.railway.app/docs) for complete API documentation with interactive testing
 
 ## 🔒 Security
 
