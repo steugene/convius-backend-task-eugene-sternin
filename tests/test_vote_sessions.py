@@ -545,6 +545,72 @@ def test_auto_close_functionality(authorized_client: TestClient, db: Session) ->
     assert session["auto_close_at"] is not None
 
 
+def test_auto_close_behavior(authorized_client: TestClient, db: Session) -> None:
+    """Test that sessions are automatically closed when auto_close_at time is reached"""
+    import time
+    from datetime import datetime, timedelta, timezone
+
+    from app import crud
+
+    # Create restaurant
+    restaurant = Restaurant(name="Auto Close Restaurant", description="Test")
+    db.add(restaurant)
+    db.commit()
+    db.refresh(restaurant)
+    restaurant_id = restaurant.id
+
+    # Create session with auto_close_at in 3 seconds
+    close_time = datetime.now(timezone.utc) + timedelta(seconds=3)
+    session_data = {
+        "title": "Auto Close Behavior Test",
+        "description": "Test session that should auto-close",
+        "auto_close_at": close_time.isoformat(),
+    }
+    response = authorized_client.post(
+        f"{settings.API_V1_STR}/vote-sessions/", json=session_data
+    )
+
+    assert response.status_code == 200
+    session_id = response.json()["id"]
+
+    # Add restaurant and start the session
+    authorized_client.post(
+        f"{settings.API_V1_STR}/vote-sessions/{session_id}/restaurants",
+        json=[restaurant_id],
+    )
+    response = authorized_client.post(
+        f"{settings.API_V1_STR}/vote-sessions/{session_id}/start"
+    )
+    assert response.status_code == 200
+    assert response.json()["status"] == "active"
+
+    # Wait for the auto_close_at time to pass
+    time.sleep(4)  # Wait a bit longer than the 3 seconds to be safe
+
+    # Now trigger the auto-close mechanism by calling the method directly
+    closed_count = crud.vote_session.check_and_auto_close_sessions(db)
+    assert (
+        closed_count == 1
+    ), f"Expected 1 session to be closed, but {closed_count} were closed"
+
+    # Verify the session is now closed
+    response = authorized_client.get(
+        f"{settings.API_V1_STR}/vote-sessions/{session_id}"
+    )
+    assert response.status_code == 200
+    session_data = response.json()
+    assert session_data["status"] == "closed"
+    assert session_data["ended_at"] is not None
+
+    # Verify we can't vote in the closed session
+    vote_data = {"restaurant_id": restaurant_id}
+    response = authorized_client.post(
+        f"{settings.API_V1_STR}/vote-sessions/{session_id}/vote", json=vote_data
+    )
+    assert response.status_code == 400
+    assert "inactive session" in response.json()["detail"]
+
+
 def test_end_vote_session_returns_winning_restaurant(
     authorized_client: TestClient, db: Session
 ) -> None:
@@ -642,3 +708,73 @@ def test_end_vote_session_no_votes_no_winner(
     # Verify no winning restaurant (since no votes were cast)
     assert "winning_restaurant" in content
     assert content["winning_restaurant"] is None
+
+
+def test_auto_close_triggered_by_voting(
+    authorized_client: TestClient, db: Session
+) -> None:
+    """
+    Test that auto-close is triggered
+    when someone tries to vote in an expired session
+    """
+    import time
+    from datetime import datetime, timedelta, timezone
+
+    # Create restaurant
+    restaurant = Restaurant(name="Vote Trigger Restaurant", description="Test")
+    db.add(restaurant)
+    db.commit()
+    db.refresh(restaurant)
+    restaurant_id = restaurant.id
+
+    # Create session with auto_close_at in 2 seconds
+    close_time = datetime.now(timezone.utc) + timedelta(seconds=2)
+    session_data = {
+        "title": "Vote Trigger Auto Close Test",
+        "description": "Test session that should auto-close when voting is attempted",
+        "auto_close_at": close_time.isoformat(),
+    }
+    response = authorized_client.post(
+        f"{settings.API_V1_STR}/vote-sessions/", json=session_data
+    )
+
+    assert response.status_code == 200
+    session_id = response.json()["id"]
+
+    # Add restaurant and start the session
+    authorized_client.post(
+        f"{settings.API_V1_STR}/vote-sessions/{session_id}/restaurants",
+        json=[restaurant_id],
+    )
+    response = authorized_client.post(
+        f"{settings.API_V1_STR}/vote-sessions/{session_id}/start"
+    )
+    assert response.status_code == 200
+    assert response.json()["status"] == "active"
+
+    # Verify session is still active before auto_close_at time
+    response = authorized_client.get(
+        f"{settings.API_V1_STR}/vote-sessions/{session_id}"
+    )
+    assert response.json()["status"] == "active"
+
+    # Wait for the auto_close_at time to pass
+    time.sleep(3)
+
+    # Try to vote - this should trigger auto-close
+    # and then fail because session is inactive
+    vote_data = {"restaurant_id": restaurant_id}
+    response = authorized_client.post(
+        f"{settings.API_V1_STR}/vote-sessions/{session_id}/vote", json=vote_data
+    )
+    assert response.status_code == 400
+    assert "inactive session" in response.json()["detail"]
+
+    # Verify the session was auto-closed
+    response = authorized_client.get(
+        f"{settings.API_V1_STR}/vote-sessions/{session_id}"
+    )
+    assert response.status_code == 200
+    session_data = response.json()
+    assert session_data["status"] == "closed"
+    assert session_data["ended_at"] is not None
