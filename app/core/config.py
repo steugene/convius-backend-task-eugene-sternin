@@ -29,12 +29,14 @@ class Settings(BaseSettings):
                 import json
 
                 try:
-                    return json.loads(v)
+                    parsed = json.loads(v)
+                    if isinstance(parsed, list):
+                        return [str(item) for item in parsed]
                 except json.JSONDecodeError:
                     pass
             return [i.strip() for i in v.split(",") if i.strip()]
         elif isinstance(v, list):
-            return v
+            return [str(item) for item in v]
         return []
 
     # Database Configuration
