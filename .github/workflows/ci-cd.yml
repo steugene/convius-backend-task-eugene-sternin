@@ -66,11 +66,11 @@ jobs:
 
     - name: 🧪 Run tests
       env:
-        POSTGRES_SERVER: localhost
-        POSTGRES_PORT: 5432
-        POSTGRES_USER: ${{ secrets.CI_POSTGRES_USER || 'postgres' }}
-        POSTGRES_PASSWORD: ${{ secrets.CI_POSTGRES_PASSWORD || 'postgres' }}
-        POSTGRES_DB: lunch_voting_test
+        TEST_POSTGRES_HOST: localhost
+        TEST_POSTGRES_PORT: 5432
+        TEST_POSTGRES_USER: ${{ secrets.CI_POSTGRES_USER || 'postgres' }}
+        TEST_POSTGRES_PASSWORD: ${{ secrets.CI_POSTGRES_PASSWORD || 'postgres' }}
+        TEST_POSTGRES_DB: lunch_voting_test
         SECRET_KEY: ${{ secrets.SECRET_KEY || 'test-key-for-ci' }}
         ENVIRONMENT: development
       run: |
