@@ -7,7 +7,6 @@ REST API for team lunch voting with JWT authentication, weighted voting logic, a
 - **🔐 User Authentication** - JWT-based authentication with secure password hashing
 - **🏪 Restaurant Management** - CRUD operations for restaurants
 - **🗳️ Weighted Voting System** - Time-based voting weights with daily limits
-- **🏆 Winner Determination** - Automatic daily winner calculation
 - **🛡️ Security** - Rate limiting, input validation, CORS, and security headers
 - **📊 Monitoring** - Health checks, metrics, and structured logging
 - **🚀 Production Ready** - Deployed on Railway with PostgreSQL
@@ -317,18 +316,6 @@ LOG_LEVEL=INFO
 **Note**: All commits must pass pre-commit hooks (formatting, linting, type checking, and tests).
 
 ## 🆘 Support
-
-### Common Issues
-
-**Database Connection**
-- Verify PostgreSQL is running
-- Check credentials in `.env`
-- Ensure database exists
-
-**Authentication**
-- Verify `SECRET_KEY` is set
-- Check token expiration
-- Use correct Authorization header format
 
 ### Getting Help
 - Check application logs
